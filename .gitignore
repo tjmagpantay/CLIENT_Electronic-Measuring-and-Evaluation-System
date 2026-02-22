@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vendor/Dependencies (if using Composer)
+/vendor/
+
+# Logs
+*.log
+/logs/
+
+# Temporary files
+/tmp/
+/temp/
+
+# Cache
+/cache/
+
+# Uploads (uncomment if you want to ignore uploads)
+# /public/uploads/
