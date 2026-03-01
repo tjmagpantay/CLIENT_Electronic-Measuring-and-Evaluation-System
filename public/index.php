@@ -1,9 +1,6 @@
 <?php
 
-/**
- * Application Entry Point
- * All requests are routed through this file
- */
+session_start();
 
 // Load configuration
 require_once __DIR__ . '/../config/env.php';

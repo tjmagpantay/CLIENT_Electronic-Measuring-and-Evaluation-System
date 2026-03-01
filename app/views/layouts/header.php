@@ -4,22 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title ?? 'E-MES'; ?></title>
+    <title><?php echo $title ?? 'LGMES'; ?></title>
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS (local) -->
+    <link rel="stylesheet" href="<?php echo env('APP_URL'); ?>/public/vendor/bootstrap/css/bootstrap.min.css">
+    <!-- Bootstrap Icons (local) -->
+    <link rel="stylesheet" href="<?php echo env('APP_URL'); ?>/public/vendor/bootstrap-icons/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo env('APP_URL'); ?>/public/css/style.css">
 </head>
 
-<body>
-    <header>
-        <nav>
-            <div class="container">
-                <h1>E-MES</h1>
-                <ul>
-                    <li><a href="<?php echo env('APP_URL'); ?>">Home</a></li>
-                    <li><a href="<?php echo env('APP_URL'); ?>/home/about">About</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-
-    <main>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark" style="background-color: #092C4C;">
         <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="<?php echo env('APP_URL'); ?>">
+                <img src="<?php echo env('APP_URL'); ?>/public/img/dilg_logo.png" alt="DILG Logo" height="40" class="me-2">
+                <span class="fw-bold">LGMES</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">

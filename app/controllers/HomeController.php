@@ -1,30 +1,26 @@
 <?php
 
-/**
- * Home Controller
- * Default controller for the application
- */
-
 class HomeController extends Controller
 {
-
     public function index()
     {
-        $data = [
-            'title' => 'Welcome to E-MES',
-            'description' => 'This is a PHP MVC application'
-        ];
-
-        $this->view('home/index', $data);
-    }
-
-    public function about()
-    {
-        $data = [
-            'title' => 'About Us',
-            'description' => 'Learn more about E-MES'
-        ];
-
-        $this->view('home/about', $data);
+        if ($this->isLoggedIn()) {
+            $role = $this->getSession('role');
+            switch ($role) {
+                case 'SUPER_ADMIN':
+                    $this->redirect('superadmin');
+                    break;
+                case 'ADMIN':
+                    $this->redirect('admin');
+                    break;
+                case 'LGU_OFFICER':
+                    $this->redirect('officer');
+                    break;
+                default:
+                    $this->redirect('auth/login');
+            }
+        } else {
+            $this->redirect('auth/login');
+        }
     }
 }

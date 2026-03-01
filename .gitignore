@@ -15,6 +15,16 @@ Thumbs.db
 # Vendor/Dependencies (if using Composer)
 /vendor/
 
+# config
+/config/
+*.config.php
+*.database.php
+*env.php
+*seed.php
+
+# Node modules
+/node_modules/
+
 # Logs
 *.log
 /logs/

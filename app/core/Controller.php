@@ -1,92 +1,44 @@
 <?php
 
-/**
- * Base Controller Class
- * All controllers extend this class
- */
-
 class Controller
 {
-    /**
-     * Load model
-     */
-    public function model($model)
+    protected function view($view, $data = [])
     {
-        $modelPath = __DIR__ . '/../models/' . $model . '.php';
+        extract($data);
 
-        if (file_exists($modelPath)) {
-            require_once $modelPath;
-            return new $model();
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+
+        if (file_exists($viewFile)) {
+            require_once $viewFile;
         } else {
-            die("Model $model not found!");
+            die("View '{$view}' not found.");
         }
     }
 
-    /**
-     * Load view
-     */
-    public function view($view, $data = [])
+    protected function redirect($url)
     {
-        $viewPath = __DIR__ . '/../views/' . $view . '.php';
-
-        if (file_exists($viewPath)) {
-            // Extract data array to variables
-            extract($data);
-            require_once $viewPath;
-        } else {
-            die("View $view not found!");
-        }
+        header('Location: ' . env('APP_URL') . '/' . $url);
+        exit;
     }
 
-    /**
-     * Redirect to another page
-     */
-    public function redirect($url)
+    protected function isLoggedIn()
     {
-        header('Location: ' . $url);
-        exit();
+        return isset($_SESSION['user_id']);
     }
 
-    /**
-     * Get POST data
-     */
-    public function getPost($key, $default = null)
+    protected function getSession($key)
     {
-        return $_POST[$key] ?? $default;
+        return $_SESSION[$key] ?? null;
     }
 
-    /**
-     * Get GET data
-     */
-    public function getQuery($key, $default = null)
+    protected function setSession($key, $value)
     {
-        return $_GET[$key] ?? $default;
+        $_SESSION[$key] = $value;
     }
 
-    /**
-     * Sanitize input
-     */
-    public function sanitize($data)
+    protected function destroySession()
     {
-        return htmlspecialchars(strip_tags(trim($data)));
-    }
-
-    /**
-     * Check if request is POST
-     */
-    public function isPost()
-    {
-        return $_SERVER['REQUEST_METHOD'] === 'POST';
-    }
-
-    /**
-     * Return JSON response
-     */
-    public function json($data, $statusCode = 200)
-    {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit();
+        session_unset();
+        session_destroy();
     }
 }

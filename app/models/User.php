@@ -1,10 +1,5 @@
 <?php
 
-/**
- * User Model
- * Example model for user-related database operations
- */
-
 class User
 {
     private $db;
@@ -14,67 +9,62 @@ class User
         $this->db = new Database();
     }
 
-    /**
-     * Get all users
-     */
-    public function getAllUsers()
+    public function findByUsername($username)
     {
-        $sql = "SELECT * FROM users";
-        return $this->db->fetchAll($sql);
+        $sql = "SELECT * FROM users WHERE username = ?";
+        return $this->db->fetch($sql, [$username]);
     }
 
-    /**
-     * Get user by ID
-     */
-    public function getUserById($id)
-    {
-        $sql = "SELECT * FROM users WHERE id = ?";
-        return $this->db->fetch($sql, [$id]);
-    }
-
-    /**
-     * Create new user
-     */
-    public function createUser($data)
-    {
-        $sql = "INSERT INTO users (username, email, password, created_at) 
-                VALUES (?, ?, ?, NOW())";
-
-        $params = [
-            $data['username'],
-            $data['email'],
-            password_hash($data['password'], PASSWORD_DEFAULT)
-        ];
-
-        $this->db->query($sql, $params);
-        return $this->db->lastInsertId();
-    }
-
-    /**
-     * Update user
-     */
-    public function updateUser($id, $data)
-    {
-        $sql = "UPDATE users SET username = ?, email = ? WHERE id = ?";
-        $params = [$data['username'], $data['email'], $id];
-        return $this->db->query($sql, $params);
-    }
-
-    /**
-     * Delete user
-     */
-    public function deleteUser($id)
-    {
-        $sql = "DELETE FROM users WHERE id = ?";
-        return $this->db->query($sql, [$id]);
-    }
-
-    /**
-     * Find user by email
-     */
     public function findByEmail($email)
     {
         $sql = "SELECT * FROM users WHERE email = ?";
         return $this->db->fetch($sql, [$email]);
+    }
+
+    public function findById($id)
+    {
+        $sql = "SELECT u.*, o.office_name FROM users u
+                LEFT JOIN offices o ON u.office_id = o.office_id
+                WHERE u.user_id = ?";
+        return $this->db->fetch($sql, [$id]);
+    }
+
+    public function authenticate($username, $password)
+    {
+        $user = $this->findByUsername($username);
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            return $user;
+        }
+
+        return false;
+    }
+
+    public function getAllUsers()
+    {
+        $sql = "SELECT u.*, o.office_name FROM users u
+                LEFT JOIN offices o ON u.office_id = o.office_id
+                ORDER BY u.created_at DESC";
+        return $this->db->fetchAll($sql);
+    }
+
+    public function createUser($data)
+    {
+        $sql = "INSERT INTO users (username, password_hash, email, firstname, lastname, middlename, role, office_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $params = [
+            $data['username'],
+            password_hash($data['password'], PASSWORD_DEFAULT),
+            $data['email'],
+            $data['firstname'],
+            $data['lastname'],
+            $data['middlename'] ?? null,
+            $data['role'],
+            $data['office_id'] ?? null,
+        ];
+
+        $this->db->query($sql, $params);
+        return $this->db->lastInsertId();
     }
 }
