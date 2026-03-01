@@ -1,4 +1,0 @@
-
-Super Admin -	superadmin	superadmin@lgmes.gov.ph	admin123
-Admin -	admin	admin@lgmes.gov.ph	admin123
-LGU Officer - officer	officer@lgmes.gov.ph	admin123
