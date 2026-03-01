@@ -33,7 +33,7 @@ class User
     {
         $user = $this->findByUsername($username);
 
-        if ($user && password_verify($password, $user['password_hash'])) {
+        if ($user && $user['is_active'] && password_verify($password, $user['password_hash'])) {
             return $user;
         }
 
@@ -50,8 +50,8 @@ class User
 
     public function createUser($data)
     {
-        $sql = "INSERT INTO users (username, password_hash, email, firstname, lastname, middlename, role, office_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO users (username, password_hash, email, firstname, lastname, middlename, role, is_active, office_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $params = [
             $data['username'],
@@ -61,10 +61,64 @@ class User
             $data['lastname'],
             $data['middlename'] ?? null,
             $data['role'],
+            $data['is_active'] ?? 1,
             $data['office_id'] ?? null,
         ];
 
         $this->db->query($sql, $params);
         return $this->db->lastInsertId();
+    }
+
+    public function updateUser($userId, $data)
+    {
+        $sql = "UPDATE users SET firstname = ?, lastname = ?, middlename = ?, email = ?, role = ?, is_active = ?, office_id = ? WHERE user_id = ?";
+        $params = [
+            $data['firstname'],
+            $data['lastname'],
+            $data['middlename'] ?? null,
+            $data['email'],
+            $data['role'],
+            $data['is_active'] ?? 1,
+            $data['office_id'] ?? null,
+            $userId
+        ];
+        $this->db->query($sql, $params);
+    }
+
+    public function updateProfile($userId, $data)
+    {
+        $sql = "UPDATE users SET firstname = ?, lastname = ?, middlename = ?, email = ? WHERE user_id = ?";
+        $params = [
+            $data['firstname'],
+            $data['lastname'],
+            $data['middlename'] ?? null,
+            $data['email'],
+            $userId
+        ];
+        $this->db->query($sql, $params);
+    }
+
+    public function updatePassword($userId, $newPassword)
+    {
+        $sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+        $this->db->query($sql, [password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
+    }
+
+    public function toggleActive($userId)
+    {
+        $sql = "UPDATE users SET is_active = NOT is_active WHERE user_id = ?";
+        $this->db->query($sql, [$userId]);
+    }
+
+    public function countAll()
+    {
+        $row = $this->db->fetch("SELECT COUNT(*) as total FROM users");
+        return $row['total'];
+    }
+
+    public function countActive()
+    {
+        $row = $this->db->fetch("SELECT COUNT(*) as total FROM users WHERE is_active = 1");
+        return $row['total'];
     }
 }
