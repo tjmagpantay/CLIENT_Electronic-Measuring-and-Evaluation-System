@@ -84,6 +84,7 @@ class OfficerController extends Controller
         $reportTypeId = $_POST['report_type_id'] ?? '';
         $periodId = $_POST['period_id'] ?? '';
         $remarks = trim($_POST['remarks'] ?? '');
+        $sheetCompleted = isset($_POST['sheet_completed']) ? 1 : 0;
 
         // Validation
         if (empty($officeId) || empty($reportTypeId) || empty($periodId)) {
@@ -96,6 +97,22 @@ class OfficerController extends Controller
             return;
         }
 
+        // Get report type to check submission type
+        $reportType = $this->reportTypeModel->getById($reportTypeId);
+        $submissionType = $reportType['submission_type'] ?? 'FILE_UPLOAD';
+
+        // For Google Sheet submissions, check if sheet is marked as completed
+        if ($submissionType === 'GOOGLE_SHEET' && !$sheetCompleted) {
+            $this->renderSubmitWithError('Please confirm that you have completed the Google Sheet.');
+            return;
+        }
+
+        // For BOTH type, require both sheet completion and files
+        if ($submissionType === 'BOTH' && !$sheetCompleted) {
+            $this->renderSubmitWithError('Please complete the Google Sheet before uploading files.');
+            return;
+        }
+
         // Get office cluster
         $office = $this->officeModel->getById($officeId);
         $cluster = $office['cluster'] ?? null;
@@ -105,32 +122,42 @@ class OfficerController extends Controller
             return;
         }
 
-        // Handle multiple file uploads
-        if (!isset($_FILES['report_files']) || empty($_FILES['report_files']['name'][0])) {
+        // Handle file uploads (skip for GOOGLE_SHEET only submissions)
+        $hasFiles = isset($_FILES['report_files']) && !empty($_FILES['report_files']['name'][0]);
+
+        if ($submissionType === 'FILE_UPLOAD' && !$hasFiles) {
             $this->renderSubmitWithError('Please select at least one file to upload.');
             return;
         }
 
-        $files = $_FILES['report_files'];
-        $fileCount = count($files['name']);
-        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
-        $maxFileSize = 10 * 1024 * 1024; // 10MB
+        if ($submissionType === 'BOTH' && !$hasFiles) {
+            $this->renderSubmitWithError('Please select at least one file to upload (Annex documents required).');
+            return;
+        }
 
-        // Validate all files first
-        for ($i = 0; $i < $fileCount; $i++) {
-            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                continue;
-            }
+        // Validate files if they are being uploaded
+        if ($hasFiles) {
+            $files = $_FILES['report_files'];
+            $fileCount = count($files['name']);
+            $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+            $maxFileSize = 10 * 1024 * 1024; // 10MB
 
-            $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowed)) {
-                $this->renderSubmitWithError('Invalid file type: ' . htmlspecialchars($files['name'][$i]) . '. Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG.');
-                return;
-            }
+            // Validate all files first
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
 
-            if ($files['size'][$i] > $maxFileSize) {
-                $this->renderSubmitWithError('File size must not exceed 10MB: ' . htmlspecialchars($files['name'][$i]));
-                return;
+                $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowed)) {
+                    $this->renderSubmitWithError('Invalid file type: ' . htmlspecialchars($files['name'][$i]) . '. Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG.');
+                    return;
+                }
+
+                if ($files['size'][$i] > $maxFileSize) {
+                    $this->renderSubmitWithError('File size must not exceed 10MB: ' . htmlspecialchars($files['name'][$i]));
+                    return;
+                }
             }
         }
 
@@ -163,70 +190,86 @@ class OfficerController extends Controller
             'remarks' => $remarks
         ]);
 
-        // Upload files
-        require_once __DIR__ . '/../models/SubmissionFile.php';
-        $fileModel = new SubmissionFile();
+        // Upload files (only if files were submitted)
         $uploadedFiles = [];
         $driveErrors = [];
 
-        for ($i = 0; $i < $fileCount; $i++) {
-            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                continue;
+        if ($hasFiles) {
+            // Create temporary upload directory
+            $uploadsDir = __DIR__ . '/../../public/uploads/temp/';
+            if (!is_dir($uploadsDir)) {
+                mkdir($uploadsDir, 0755, true);
             }
 
-            $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-            $originalName = pathinfo($files['name'][$i], PATHINFO_FILENAME);
-            $filename = $office['office_name'] . '_' . $reportType['report_code'] . '_' . $period['period_month'] . '-' . $period['period_year'] . '_' . ($i + 1) . '.' . $ext;
-            $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename); // Sanitize filename
+            require_once __DIR__ . '/../models/SubmissionFile.php';
+            $fileModel = new SubmissionFile();
 
-            // Save temporarily
-            $tempPath = $uploadsDir . $filename;
-            if (!move_uploaded_file($files['tmp_name'][$i], $tempPath)) {
-                continue;
-            }
+            $files = $_FILES['report_files'];
+            $fileCount = count($files['name']);
 
-            // Upload to Google Drive
-            $driveResult = null;
-            if ($driveService->isEnabled()) {
-                $driveResult = $driveService->uploadFile(
-                    $tempPath,
-                    $filename,
-                    $cluster,
-                    $period['period_month'],
-                    $period['period_year']
-                );
-            }
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
 
-            // Store file record
-            $fileModel->create([
-                'submission_id' => $submissionId,
-                'file_name' => $originalName . '.' . $ext,
-                'file_path' => 'uploads/temp/' . $filename, // Temporary local path
-                'file_size' => $files['size'][$i],
-                'file_type' => $ext,
-                'google_drive_id' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['file_id'] : null,
-                'google_drive_link' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['web_link'] : null
-            ]);
+                $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
+                $originalName = pathinfo($files['name'][$i], PATHINFO_FILENAME);
+                $filename = $office['office_name'] . '_' . $reportType['report_code'] . '_' . $period['period_month'] . '-' . $period['period_year'] . '_' . ($i + 1) . '.' . $ext;
+                $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename); // Sanitize filename
 
-            if ($driveResult && isset($driveResult['success']) && $driveResult['success']) {
-                $uploadedFiles[] = $filename;
-                // Delete temp file after successful Drive upload
-                @unlink($tempPath);
-            } else {
-                $driveErrors[] = $filename . ': ' . (($driveResult && isset($driveResult['error'])) ? $driveResult['error'] : 'Google Drive not configured');
+                // Save temporarily
+                $tempPath = $uploadsDir . $filename;
+                if (!move_uploaded_file($files['tmp_name'][$i], $tempPath)) {
+                    continue;
+                }
+
+                // Upload to Google Drive
+                $driveResult = null;
+                if ($driveService->isEnabled()) {
+                    $driveResult = $driveService->uploadFile(
+                        $tempPath,
+                        $filename,
+                        $cluster,
+                        $period['period_month'],
+                        $period['period_year']
+                    );
+                }
+
+                // Store file record
+                $fileModel->create([
+                    'submission_id' => $submissionId,
+                    'file_name' => $originalName . '.' . $ext,
+                    'file_path' => 'uploads/temp/' . $filename, // Temporary local path
+                    'file_size' => $files['size'][$i],
+                    'file_type' => $ext,
+                    'google_drive_id' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['file_id'] : null,
+                    'google_drive_link' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['web_link'] : null
+                ]);
+
+                if ($driveResult && isset($driveResult['success']) && $driveResult['success']) {
+                    $uploadedFiles[] = $filename;
+                    // Delete temp file after successful Drive upload
+                    @unlink($tempPath);
+                } else {
+                    $driveErrors[] = $filename . ': ' . (($driveResult && isset($driveResult['error'])) ? $driveResult['error'] : 'Google Drive not configured');
+                }
             }
         }
 
-        if (empty($uploadedFiles) && empty($driveErrors)) {
-            $this->renderSubmitWithError('Failed to upload any files. Please try again.');
-            return;
-        }
-
-        // Prepare success message
-        $successMsg = 'Report submitted successfully! ' . count($uploadedFiles) . ' file(s) uploaded to Google Drive. Status: ' . str_replace('_', ' ', $status);
-
-        if (!empty($driveErrors)) {
-            $successMsg .= ' (Note: Google Drive integration not fully configured. Files stored locally.)';
+        // Prepare success message based on submission type
+        if ($submissionType === 'GOOGLE_SHEET') {
+            $successMsg = 'Google Sheet submission recorded successfully! Status: ' . str_replace('_', ' ', $status) . '. Admin will verify your sheet entry.';
+        } elseif ($submissionType === 'BOTH') {
+            $successMsg = 'Report submitted successfully! Google Sheet marked as completed and ' . count($uploadedFiles) . ' file(s) uploaded. Status: ' . str_replace('_', ' ', $status);
+            if (!empty($driveErrors)) {
+                $successMsg .= ' (Note: Some files stored locally - Google Drive integration being configured.)';
+            }
+        } else {
+            // FILE_UPLOAD
+            $successMsg = 'Report submitted successfully! ' . count($uploadedFiles) . ' file(s) uploaded. Status: ' . str_replace('_', ' ', $status);
+            if (!empty($driveErrors)) {
+                $successMsg .= ' (Note: Files stored locally - Google Drive integration being configured.)';
+            }
         }
 
         $officeId = $_SESSION['office_id'] ?? null;

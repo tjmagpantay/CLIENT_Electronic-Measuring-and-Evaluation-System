@@ -315,6 +315,7 @@ class SuperadminController extends Controller
         $reportTitle = trim($_POST['report_title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $opr = trim($_POST['opr'] ?? '');
+        $submissionType = trim($_POST['submission_type'] ?? 'FILE_UPLOAD');
         $templateLink = trim($_POST['template_link'] ?? '');
         $deadlineDay = intval($_POST['deadline_day'] ?? 15);
         $isActive = isset($_POST['is_active']) ? 1 : 0;
@@ -336,6 +337,7 @@ class SuperadminController extends Controller
             'report_title' => $reportTitle,
             'description' => $description,
             'opr' => $opr,
+            'submission_type' => $submissionType,
             'template_link' => $templateLink,
             'deadline_day' => $deadlineDay,
             'is_active' => $isActive
@@ -359,6 +361,7 @@ class SuperadminController extends Controller
         $reportTitle = trim($_POST['report_title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $opr = trim($_POST['opr'] ?? '');
+        $submissionType = trim($_POST['submission_type'] ?? 'FILE_UPLOAD');
         $templateLink = trim($_POST['template_link'] ?? '');
         $deadlineDay = intval($_POST['deadline_day'] ?? 15);
         $isActive = isset($_POST['is_active']) ? 1 : 0;
@@ -380,6 +383,7 @@ class SuperadminController extends Controller
             'report_title' => $reportTitle,
             'description' => $description,
             'opr' => $opr,
+            'submission_type' => $submissionType,
             'template_link' => $templateLink,
             'deadline_day' => $deadlineDay,
             'is_active' => $isActive

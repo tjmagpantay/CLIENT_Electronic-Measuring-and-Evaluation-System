@@ -74,14 +74,15 @@ class ReportType
      */
     public function create($data)
     {
-        $sql = "INSERT INTO report_types (report_code, report_title, description, opr, template_link, deadline_day, is_active) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO report_types (report_code, report_title, description, opr, submission_type, template_link, deadline_day, is_active) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->query($sql, [
             $data['report_code'],
             $data['report_title'],
             $data['description'] ?? null,
             $data['opr'] ?? null,
+            $data['submission_type'] ?? 'FILE_UPLOAD',
             $data['template_link'] ?? null,
             $data['deadline_day'] ?? 15,
             $data['is_active'] ?? 1
@@ -95,7 +96,7 @@ class ReportType
     {
         $sql = "UPDATE report_types 
                 SET report_code = ?, report_title = ?, description = ?, opr = ?, 
-                    template_link = ?, deadline_day = ?, is_active = ? 
+                    submission_type = ?, template_link = ?, deadline_day = ?, is_active = ? 
                 WHERE report_type_id = ?";
 
         return $this->db->query($sql, [
@@ -103,6 +104,7 @@ class ReportType
             $data['report_title'],
             $data['description'] ?? null,
             $data['opr'] ?? null,
+            $data['submission_type'] ?? 'FILE_UPLOAD',
             $data['template_link'] ?? null,
             $data['deadline_day'] ?? 15,
             $data['is_active'] ?? 1,

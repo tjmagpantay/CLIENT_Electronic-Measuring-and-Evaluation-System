@@ -66,8 +66,14 @@
                                     <option value="<?php echo $rt['report_type_id']; ?>"
                                         data-opr="<?php echo htmlspecialchars($rt['opr'] ?? 'Not Assigned'); ?>"
                                         data-template="<?php echo htmlspecialchars($rt['template_link'] ?? ''); ?>"
-                                        data-deadline="<?php echo htmlspecialchars($rt['deadline_day'] ?? '15'); ?>">
+                                        data-deadline="<?php echo htmlspecialchars($rt['deadline_day'] ?? '15'); ?>"
+                                        data-submission-type="<?php echo htmlspecialchars($rt['submission_type'] ?? 'FILE_UPLOAD'); ?>">
                                         <?php echo htmlspecialchars($rt['report_code'] . ' - ' . $rt['report_title']); ?>
+                                        <?php if (isset($rt['submission_type']) && $rt['submission_type'] === 'GOOGLE_SHEET'): ?>
+                                            <span class="badge bg-info">Google Sheet</span>
+                                        <?php elseif (isset($rt['submission_type']) && $rt['submission_type'] === 'BOTH'): ?>
+                                            <span class="badge bg-warning">Sheet + Files</span>
+                                        <?php endif; ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -104,19 +110,58 @@
                                     <small class="text-muted d-block">Deadline</small>
                                     <strong id="reportDeadline" style="color: #092C4C;">-</strong>
                                 </div>
-                                <div class="col-md-4" id="templateLinkContainer" style="display: none;">
-                                    <small class="text-muted d-block">Report Format/Template</small>
-                                    <a href="#" id="templateLink" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
-                                        <i class="bi bi-download me-1"></i> Download Template
-                                    </a>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Submission Type</small>
+                                    <strong id="reportSubmissionType" style="color: #092C4C;">-</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <!-- Google Sheet Section (for GOOGLE_SHEET and BOTH types) -->
+                    <div id="googleSheetSection" class="mb-3" style="display: none;">
+                        <div class="card border-info">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3" style="color: #092C4C;">
+                                    <i class="bi bi-table me-1"></i> Google Sheet Data Entry Required
+                                </h6>
+                                <p class="text-muted small mb-3">
+                                    This report requires you to fill in data directly in the Google Sheet. Click the button below to open it in a new tab, fill in your office's data, then return here to submit.
+                                </p>
+
+                                <!-- Google Sheet Link Display -->
+                                <div class="alert alert-success mb-3" id="sheetLinkBox" style="display: none;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <strong><i class="bi bi-link-45deg me-1"></i> Google Sheet Link:</strong>
+                                            <div class="small text-break mt-1" id="sheetLinkDisplay"></div>
+                                        </div>
+                                        <a href="#" id="googleSheetLink" target="_blank" class="btn btn-success btn-sm ms-3">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- No Link Warning -->
+                                <div class="alert alert-warning" id="noSheetLinkWarning" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    <strong>Google Sheet link not set up yet.</strong> Please contact your administrator to add the Google Sheet link for this report.
+                                </div>
+
+                                <div class="form-check" id="sheetCompletedCheck" style="display: none;">
+                                    <input type="checkbox" class="form-check-input" id="sheetCompleted" name="sheet_completed">
+                                    <label class="form-check-label" for="sheetCompleted">
+                                        <strong>✓ I have completed filling out the Google Sheet</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section (for FILE_UPLOAD and BOTH types) -->
+                    <div id="fileUploadSection" class="mb-3">
                         <label for="report_files" class="form-label fw-semibold" style="color: #092C4C;">
-                            Upload Files <span class="text-danger">*</span>
+                            Upload Files <span class="text-danger" id="uploadRequired">*</span>
                             <small class="text-muted fw-normal">(You can select multiple files)</small>
                         </label>
                         <input type="file" class="form-control" id="report_files" name="report_files[]" multiple required
@@ -184,10 +229,19 @@
         const reportInfoCard = document.getElementById('reportInfoCard');
         const reportOpr = document.getElementById('reportOpr');
         const reportDeadline = document.getElementById('reportDeadline');
-        const templateLink = document.getElementById('templateLink');
-        const templateLinkContainer = document.getElementById('templateLinkContainer');
+        const reportSubmissionType = document.getElementById('reportSubmissionType');
+        const googleSheetSection = document.getElementById('googleSheetSection');
+        const googleSheetLink = document.getElementById('googleSheetLink');
+        const sheetCompleted = document.getElementById('sheetCompleted');
+        const sheetLinkBox = document.getElementById('sheetLinkBox');
+        const sheetLinkDisplay = document.getElementById('sheetLinkDisplay');
+        const noSheetLinkWarning = document.getElementById('noSheetLinkWarning');
+        const sheetCompletedCheck = document.getElementById('sheetCompletedCheck');
+        const fileUploadSection = document.getElementById('fileUploadSection');
         const fileInput = document.getElementById('report_files');
+        const uploadRequired = document.getElementById('uploadRequired');
         const fileList = document.getElementById('fileList');
+        const submitForm = document.getElementById('submitForm');
 
         // Show report information when report type is selected
         reportTypeSelect.addEventListener('change', function() {
@@ -205,9 +259,18 @@
             if (reportTypeSelect.value && selectedOption) {
                 const opr = selectedOption.dataset.opr || 'Not Assigned';
                 const template = selectedOption.dataset.template || '';
-                const deadlineDay = selectedOption.dataset.deadline || '15';
+                const submissionType = selectedOption.dataset.submissionType || 'FILE_UPLOAD';
 
                 reportOpr.textContent = opr;
+
+                // Show submission type
+                if (submissionType === 'GOOGLE_SHEET') {
+                    reportSubmissionType.innerHTML = '<span class="badge bg-info">Google Sheet</span>';
+                } else if (submissionType === 'BOTH') {
+                    reportSubmissionType.innerHTML = '<span class="badge bg-warning text-dark">Sheet + Files</span>';
+                } else {
+                    reportSubmissionType.innerHTML = '<span class="badge bg-primary">File Upload</span>';
+                }
 
                 // Show period deadline (set by Super Admin)
                 if (periodSelect.value && selectedPeriod) {
@@ -229,17 +292,61 @@
                     reportDeadline.textContent = 'Select period to see deadline';
                 }
 
-                // Show/hide template link
-                if (template) {
-                    templateLink.href = template;
-                    templateLinkContainer.style.display = 'block';
+                // Handle different submission types
+                if (submissionType === 'GOOGLE_SHEET') {
+                    // Show Google Sheet section only
+                    googleSheetSection.style.display = 'block';
+                    fileUploadSection.style.display = 'none';
+                    fileInput.required = false;
+                    sheetCompleted.required = true;
+
+                    if (template) {
+                        // Show the link box with the actual URL
+                        googleSheetLink.href = template;
+                        sheetLinkDisplay.textContent = template;
+                        sheetLinkBox.style.display = 'block';
+                        noSheetLinkWarning.style.display = 'none';
+                        sheetCompletedCheck.style.display = 'block';
+                    } else {
+                        // Show warning that link is not configured
+                        sheetLinkBox.style.display = 'none';
+                        noSheetLinkWarning.style.display = 'block';
+                        sheetCompletedCheck.style.display = 'none';
+                    }
+                } else if (submissionType === 'BOTH') {
+                    // Show both sections
+                    googleSheetSection.style.display = 'block';
+                    fileUploadSection.style.display = 'block';
+                    fileInput.required = true;
+                    sheetCompleted.required = true;
+                    uploadRequired.textContent = '*';
+
+                    if (template) {
+                        // Show the link box with the actual URL
+                        googleSheetLink.href = template;
+                        sheetLinkDisplay.textContent = template;
+                        sheetLinkBox.style.display = 'block';
+                        noSheetLinkWarning.style.display = 'none';
+                        sheetCompletedCheck.style.display = 'block';
+                    } else {
+                        // Show warning that link is not configured
+                        sheetLinkBox.style.display = 'none';
+                        noSheetLinkWarning.style.display = 'block';
+                        sheetCompletedCheck.style.display = 'none';
+                    }
                 } else {
-                    templateLinkContainer.style.display = 'none';
+                    // FILE_UPLOAD - Show file upload section only
+                    googleSheetSection.style.display = 'none';
+                    fileUploadSection.style.display = 'block';
+                    fileInput.required = true;
+                    sheetCompleted.required = false;
+                    uploadRequired.textContent = '*';
                 }
 
                 reportInfoCard.style.display = 'block';
             } else {
                 reportInfoCard.style.display = 'none';
+                googleSheetSection.style.display = 'none';
             }
         }
 

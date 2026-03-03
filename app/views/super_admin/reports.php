@@ -37,6 +37,7 @@
                         <th>#</th>
                         <th>Report Code</th>
                         <th>Report Title</th>
+                        <th>Submission Type</th>
                         <th>OPR</th>
                         <th>Deadline Day</th>
                         <th>Status</th>
@@ -50,6 +51,17 @@
                                 <td><?php echo $i + 1; ?></td>
                                 <td><span class="badge" style="background-color: #F3AF0E; color: #092C4C;"><?php echo htmlspecialchars($rt['report_code']); ?></span></td>
                                 <td class="fw-semibold"><?php echo htmlspecialchars($rt['report_title']); ?></td>
+                                <td>
+                                    <?php
+                                    $type = $rt['submission_type'] ?? 'FILE_UPLOAD';
+                                    if ($type === 'GOOGLE_SHEET'): ?>
+                                        <span class="badge bg-info"><i class="bi bi-file-spreadsheet"></i> Google Sheet</span>
+                                    <?php elseif ($type === 'BOTH'): ?>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-files"></i> Sheet + Files</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-primary"><i class="bi bi-cloud-upload"></i> File Upload</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><small><?php echo htmlspecialchars($rt['opr'] ?? 'Not set'); ?></small></td>
                                 <td>Day <?php echo htmlspecialchars($rt['deadline_day'] ?? 15); ?></td>
                                 <td>
@@ -71,7 +83,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 No report types found. Click "Add Report Type" to create one.
                             </td>
                         </tr>
@@ -110,9 +122,18 @@
                         <input type="text" class="form-control" name="opr" placeholder="e.g., Budget Officer - Finance Dept">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Submission Type <span class="text-danger">*</span></label>
+                        <select class="form-select" name="submission_type" required>
+                            <option value="FILE_UPLOAD">File Upload</option>
+                            <option value="GOOGLE_SHEET">Google Sheet</option>
+                            <option value="BOTH">Both (Sheet + Files)</option>
+                        </select>
+                        <small class="text-muted">How officers will submit this report</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Template Link</label>
-                        <input type="text" class="form-control" name="template_link" placeholder="https://drive.google.com/... (optional)">
-                        <small class="text-muted">Google Drive link to report template (optional)</small>
+                        <input type="text" class="form-control" name="template_link" placeholder="https://docs.google.com/spreadsheets/... (for Google Sheets)">
+                        <small class="text-muted">Google Sheet URL (required for Google Sheet types)</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Default Deadline Day</label>
@@ -161,8 +182,18 @@
                         <input type="text" class="form-control" name="opr" id="editOpr">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Submission Type <span class="text-danger">*</span></label>
+                        <select class="form-select" name="submission_type" id="editSubmissionType" required>
+                            <option value="FILE_UPLOAD">File Upload</option>
+                            <option value="GOOGLE_SHEET">Google Sheet</option>
+                            <option value="BOTH">Both (Sheet + Files)</option>
+                        </select>
+                        <small class="text-muted">How officers will submit this report</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Template Link</label>
                         <input type="text" class="form-control" name="template_link" id="editTemplateLink">
+                        <small class="text-muted">Google Sheet URL (required for Google Sheet types)</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Default Deadline Day</label>
@@ -213,6 +244,7 @@
         document.getElementById('editReportTitle').value = reportType.report_title;
         document.getElementById('editDescription').value = reportType.description || '';
         document.getElementById('editOpr').value = reportType.opr || '';
+        document.getElementById('editSubmissionType').value = reportType.submission_type || 'FILE_UPLOAD';
         document.getElementById('editTemplateLink').value = reportType.template_link || '';
         document.getElementById('editDeadlineDay').value = reportType.deadline_day || 15;
         document.getElementById('editIsActive').checked = reportType.is_active == 1;
