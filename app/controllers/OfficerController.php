@@ -48,7 +48,7 @@ class OfficerController extends Controller
         $officeId = $_SESSION['office_id'] ?? null;
         $data = [
             'title' => 'My Submissions - LGMES',
-            'submissions' => $officeId ? $this->submissionModel->getByOffice($officeId) : [],
+            'submissions' => $officeId ? $this->submissionModel->getByOfficeWithFiles($officeId) : [],
             'periodModel' => $this->periodModel,
             'onTimeCount' => $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'ON_TIME') : 0,
             'lateCount' => $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'LATE') : 0,
@@ -96,56 +96,137 @@ class OfficerController extends Controller
             return;
         }
 
-        // Handle file upload
-        if (!isset($_FILES['report_file']) || $_FILES['report_file']['error'] !== UPLOAD_ERR_OK) {
-            $this->renderSubmitWithError('Please select a file to upload.');
+        // Get office cluster
+        $office = $this->officeModel->getById($officeId);
+        $cluster = $office['cluster'] ?? null;
+
+        if (empty($cluster)) {
+            $this->renderSubmitWithError('Your office is not assigned to a cluster. Please contact administrator.');
             return;
         }
 
-        $file = $_FILES['report_file'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        // Handle multiple file uploads
+        if (!isset($_FILES['report_files']) || empty($_FILES['report_files']['name'][0])) {
+            $this->renderSubmitWithError('Please select at least one file to upload.');
+            return;
+        }
+
+        $files = $_FILES['report_files'];
+        $fileCount = count($files['name']);
         $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+        $maxFileSize = 10 * 1024 * 1024; // 10MB
 
-        if (!in_array($ext, $allowed)) {
-            $this->renderSubmitWithError('Invalid file type. Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG.');
-            return;
+        // Validate all files first
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowed)) {
+                $this->renderSubmitWithError('Invalid file type: ' . htmlspecialchars($files['name'][$i]) . '. Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG.');
+                return;
+            }
+
+            if ($files['size'][$i] > $maxFileSize) {
+                $this->renderSubmitWithError('File size must not exceed 10MB: ' . htmlspecialchars($files['name'][$i]));
+                return;
+            }
         }
 
-        if ($file['size'] > 10 * 1024 * 1024) {
-            $this->renderSubmitWithError('File size must not exceed 10MB.');
-            return;
-        }
-
-        $uploadsDir = __DIR__ . '/../../public/uploads/';
+        // Create temporary upload directory
+        $uploadsDir = __DIR__ . '/../../public/uploads/temp/';
         if (!is_dir($uploadsDir)) {
             mkdir($uploadsDir, 0755, true);
         }
 
-        $filename = 'report_' . $officeId . '_' . $reportTypeId . '_' . $periodId . '_' . time() . '.' . $ext;
-
-        if (!move_uploaded_file($file['tmp_name'], $uploadsDir . $filename)) {
-            $this->renderSubmitWithError('Failed to upload file. Please try again.');
-            return;
-        }
-
-        $fileLink = 'uploads/' . $filename;
-
-        // Determine ON_TIME or LATE
+        // Determine ON_TIME or LATE status
         $period = $this->periodModel->getById($periodId);
         $reportType = $this->reportTypeModel->getById($reportTypeId);
-        $deadlineDay = $reportType['default_deadline_day'] ?? 15;
-        $deadlineDate = sprintf('%04d-%02d-%02d', $period['period_year'], $period['period_month'], $deadlineDay);
-        $status = (date('Y-m-d') <= $deadlineDate) ? 'ON_TIME' : 'LATE';
+        $deadlineDay = $reportType['deadline_day'] ?? 15;
+        $deadlineDate = sprintf('%04d-%02d-%02d 23:59:59', $period['period_year'], $period['period_month'], $deadlineDay);
+        $status = (date('Y-m-d H:i:s') <= $deadlineDate) ? 'ON_TIME' : 'LATE';
 
-        $this->submissionModel->create([
+        // Initialize Google Drive Service
+        require_once __DIR__ . '/../core/GoogleDriveService.php';
+        $driveService = new GoogleDriveService();
+
+        // Create submission record
+        $submissionId = $this->submissionModel->create([
             'office_id' => $officeId,
             'report_type_id' => $reportTypeId,
             'period_id' => $periodId,
             'submitted_by' => $userId,
-            'file_link' => $fileLink,
+            'file_link' => '', // Legacy field
             'submission_status' => $status,
             'remarks' => $remarks
         ]);
+
+        // Upload files
+        require_once __DIR__ . '/../models/SubmissionFile.php';
+        $fileModel = new SubmissionFile();
+        $uploadedFiles = [];
+        $driveErrors = [];
+
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
+            $originalName = pathinfo($files['name'][$i], PATHINFO_FILENAME);
+            $filename = $office['office_name'] . '_' . $reportType['report_code'] . '_' . $period['period_month'] . '-' . $period['period_year'] . '_' . ($i + 1) . '.' . $ext;
+            $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename); // Sanitize filename
+
+            // Save temporarily
+            $tempPath = $uploadsDir . $filename;
+            if (!move_uploaded_file($files['tmp_name'][$i], $tempPath)) {
+                continue;
+            }
+
+            // Upload to Google Drive
+            $driveResult = null;
+            if ($driveService->isEnabled()) {
+                $driveResult = $driveService->uploadFile(
+                    $tempPath,
+                    $filename,
+                    $cluster,
+                    $period['period_month'],
+                    $period['period_year']
+                );
+            }
+
+            // Store file record
+            $fileModel->create([
+                'submission_id' => $submissionId,
+                'file_name' => $originalName . '.' . $ext,
+                'file_path' => 'uploads/temp/' . $filename, // Temporary local path
+                'file_size' => $files['size'][$i],
+                'file_type' => $ext,
+                'google_drive_id' => $driveResult['success'] ? $driveResult['file_id'] : null,
+                'google_drive_link' => $driveResult['success'] ? $driveResult['web_link'] : null
+            ]);
+
+            if ($driveResult && $driveResult['success']) {
+                $uploadedFiles[] = $filename;
+                // Delete temp file after successful Drive upload
+                @unlink($tempPath);
+            } else {
+                $driveErrors[] = $filename . ': ' . ($driveResult['error'] ?? 'Unknown error');
+            }
+        }
+
+        if (empty($uploadedFiles) && empty($driveErrors)) {
+            $this->renderSubmitWithError('Failed to upload any files. Please try again.');
+            return;
+        }
+
+        // Prepare success message
+        $successMsg = 'Report submitted successfully! ' . count($uploadedFiles) . ' file(s) uploaded to Google Drive. Status: ' . str_replace('_', ' ', $status);
+
+        if (!empty($driveErrors)) {
+            $successMsg .= ' (Note: Google Drive integration not fully configured. Files stored locally.)';
+        }
 
         $officeId = $_SESSION['office_id'] ?? null;
         $data = [
@@ -154,7 +235,7 @@ class OfficerController extends Controller
             'periods' => $this->periodModel->getActive(),
             'office' => $officeId ? $this->officeModel->getById($officeId) : null,
             'error' => '',
-            'success' => 'Report submitted successfully! Status: ' . str_replace('_', ' ', $status)
+            'success' => $successMsg
         ];
         $this->view('officers/submit', $data);
     }

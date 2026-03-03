@@ -1,0 +1,14 @@
+{
+    "name": "lgmes/reporting-system",
+    "description": "Local Government Monitoring and Evaluation System",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "google/apiclient": "^2.15"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}

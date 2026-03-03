@@ -126,10 +126,11 @@
                         <th class="ps-4" style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">#</th>
                         <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Report</th>
                         <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Period</th>
+                        <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">OPR</th>
                         <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Submitted By</th>
                         <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Date Submitted</th>
                         <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Status</th>
-                        <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">File</th>
+                        <th style="color: #092C4C; font-size: 0.8rem; font-weight: 600;">Files</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -145,6 +146,9 @@
                                 </td>
                                 <td>
                                     <small><?php echo $periodModel->getMonthName($s['period_month']) . ' ' . $s['period_year']; ?></small>
+                                </td>
+                                <td>
+                                    <small class="text-muted"><?php echo htmlspecialchars($s['opr'] ?? 'Not Assigned'); ?></small>
                                 </td>
                                 <td>
                                     <small><?php echo htmlspecialchars(($s['firstname'] ?? '') . ' ' . ($s['lastname'] ?? '')); ?></small>
@@ -174,8 +178,39 @@
                                     <span class="badge <?php echo $statusClass; ?> rounded-pill"><?php echo $statusLabel; ?></span>
                                 </td>
                                 <td>
-                                    <?php if ($s['file_link']): ?>
-                                        <a href="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($s['file_link']); ?>" target="_blank" class="btn btn-sm btn-outline-primary" title="Download File">
+                                    <?php if (!empty($s['files']) && is_array($s['files'])): ?>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-cloud-download me-1"></i> <?php echo count($s['files']); ?> file(s)
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <?php foreach ($s['files'] as $file): ?>
+                                                    <li>
+                                                        <?php if (!empty($file['google_drive_link'])): ?>
+                                                            <!-- Google Drive Link -->
+                                                            <a class="dropdown-item" href="<?php echo htmlspecialchars($file['google_drive_link']); ?>" target="_blank">
+                                                                <i class="bi bi-google text-primary me-1"></i>
+                                                                <?php echo htmlspecialchars($file['file_name']); ?>
+                                                                <small class="text-muted d-block">
+                                                                    <i class="bi bi-cloud-check"></i> Google Drive • <?php echo number_format($file['file_size'] / 1024, 2); ?> KB
+                                                                </small>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <!-- Local File Fallback -->
+                                                            <a class="dropdown-item" href="<?php echo env('APP_URL'); ?>/<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank">
+                                                                <i class="bi bi-file-earmark-<?php echo $file['file_type']; ?> me-1"></i>
+                                                                <?php echo htmlspecialchars($file['file_name']); ?>
+                                                                <small class="text-muted d-block"><?php echo number_format($file['file_size'] / 1024, 2); ?> KB</small>
+                                                            </a>
+                                                        <?php endif; ?>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    <?php elseif ($s['file_link']): ?>
+                                        <!-- Legacy single file support -->
+                                        <a href="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($s['file_link']); ?>"
+                                            target="_blank" class="btn btn-sm btn-outline-primary" title="Download File">
                                             <i class="bi bi-download"></i>
                                         </a>
                                     <?php else: ?>
@@ -186,7 +221,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="8" class="text-center text-muted py-5">
                                 <i class="bi bi-inbox fs-1 d-block mb-2" style="color: #ccc;"></i>
                                 <p class="mb-1">No submissions found.</p>
                                 <small>Submit your first report to see it here.</small>
@@ -200,24 +235,24 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var btnFilter = document.getElementById('btnApplyFilter');
-    if (btnFilter) {
-        btnFilter.addEventListener('click', function() {
-            var reportType = document.getElementById('filterReportType').value;
-            var status = document.getElementById('filterStatus').value;
-            var period = document.getElementById('filterPeriod').value;
-            var rows = document.querySelectorAll('#submissionsTable tbody tr[data-report-code]');
+    document.addEventListener('DOMContentLoaded', function() {
+        var btnFilter = document.getElementById('btnApplyFilter');
+        if (btnFilter) {
+            btnFilter.addEventListener('click', function() {
+                var reportType = document.getElementById('filterReportType').value;
+                var status = document.getElementById('filterStatus').value;
+                var period = document.getElementById('filterPeriod').value;
+                var rows = document.querySelectorAll('#submissionsTable tbody tr[data-report-code]');
 
-            rows.forEach(function(row) {
-                var showReport = !reportType || row.dataset.reportCode === reportType;
-                var showStatus = !status || row.dataset.status === status;
-                var showPeriod = !period || row.dataset.period === period;
-                row.style.display = (showReport && showStatus && showPeriod) ? '' : 'none';
+                rows.forEach(function(row) {
+                    var showReport = !reportType || row.dataset.reportCode === reportType;
+                    var showStatus = !status || row.dataset.status === status;
+                    var showPeriod = !period || row.dataset.period === period;
+                    row.style.display = (showReport && showStatus && showPeriod) ? '' : 'none';
+                });
             });
-        });
-    }
-});
+        }
+    });
 </script>
 
 <?php require_once __DIR__ . '/../layouts/dashboard_footer.php'; ?>

@@ -71,4 +71,48 @@ class Office
         $newStatus = ($office['status'] === 'ACTIVE') ? 'INACTIVE' : 'ACTIVE';
         $this->db->query("UPDATE offices SET status = ? WHERE office_id = ?", [$newStatus, $id]);
     }
+
+    /**
+     * Get offices by cluster
+     */
+    public function getByCluster($cluster)
+    {
+        $sql = "SELECT * FROM offices WHERE cluster = ? AND status = 'ACTIVE' ORDER BY office_name ASC";
+        return $this->db->fetchAll($sql, [$cluster]);
+    }
+
+    /**
+     * Get cluster name for display
+     */
+    public function getClusterName($cluster)
+    {
+        $clusters = [
+            '1' => 'Cluster 1',
+            '2' => 'Cluster 2',
+            '3' => 'Cluster 3'
+        ];
+        return $clusters[$cluster] ?? 'Not Assigned';
+    }
+
+    /**
+     * Get cluster offices list (formatted string)
+     */
+    public function getClusterOfficesList($cluster)
+    {
+        $clusterOffices = [
+            '1' => ['Batangas City', 'City of Calaca', 'Balayan', 'Calatagan', 'Lemery', 'Lian', 'Nasugbu', 'Taal', 'Tuy'],
+            '2' => ['Bauan', 'Ibaan', 'Lobo', 'Mabini', 'Padre Garcia', 'Rosario', 'San Luis', 'San Jose', 'Taysan', 'San Juan', 'San Pascual', 'Tingloy'],
+            '3' => ['City of Lipa', 'City of Sto. Tomas', 'City of Tanauan', 'Agoncillo', 'Alitagtag', 'Balete', 'Cuenca', 'Laurel', 'Malvar', 'Mataasnakahoy', 'San Nicolas', 'Sta Teresita', 'Talisay']
+        ];
+        return $clusterOffices[$cluster] ?? [];
+    }
+
+    /**
+     * Count offices in a cluster
+     */
+    public function countByCluster($cluster)
+    {
+        $row = $this->db->fetch("SELECT COUNT(*) as total FROM offices WHERE cluster = ? AND status = 'ACTIVE'", [$cluster]);
+        return $row['total'] ?? 0;
+    }
 }

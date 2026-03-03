@@ -15,12 +15,24 @@ Thumbs.db
 # Vendor/Dependencies (if using Composer)
 /vendor/
 
-# config
-/config/
-*.config.php
-*.database.php
-*env.php
-*seed.php
+# Google Drive Credentials - CRITICAL: NEVER COMMIT ACTUAL CREDENTIALS!
+config/google_drive_credentials.json
+
+# Sensitive config files with actual database passwords/keys
+config/env.php
+config/database.php
+config/config.php
+config/seed.php
+config/lgmes-testing-36fb113dd4b0.json
+config/lgmes(1).sql
+config/google_drive_credentials.json
+config/google_drive_credentials.json.example
+config/setup_google_drive.sql
+
+# Uploaded files
+public/uploads/*
+public/uploads/temp/*
+!public/uploads/.gitkeep
 
 # Node modules
 /node_modules/

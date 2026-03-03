@@ -26,13 +26,15 @@ class Submission
 
     public function getByOffice($officeId)
     {
-        $sql = "SELECT s.*, rt.report_code, rt.report_title,
-                       rp.period_month, rp.period_year,
-                       u.firstname, u.lastname
+        $sql = "SELECT s.*, rt.report_code, rt.report_title, rt.opr,
+                       rp.period_month, rp.period_year, rp.deadline,
+                       u.firstname, u.lastname,
+                       o.cluster, o.office_name
                 FROM submissions s
                 JOIN report_types rt ON s.report_type_id = rt.report_type_id
                 JOIN reporting_period rp ON s.period_id = rp.period_id
                 LEFT JOIN users u ON s.submitted_by = u.user_id
+                LEFT JOIN offices o ON s.office_id = o.office_id
                 WHERE s.office_id = ?
                 ORDER BY s.created_at DESC";
         return $this->db->fetchAll($sql, [$officeId]);
@@ -132,5 +134,40 @@ class Submission
             [$officeId, $periodId, $reportTypeId]
         );
         return $row ? true : false;
+    }
+
+    /**
+     * Get submission with files
+     */
+    public function getWithFiles($submissionId)
+    {
+        $submission = $this->getById($submissionId);
+        if (!$submission) {
+            return null;
+        }
+
+        // Get associated files
+        require_once __DIR__ . '/SubmissionFile.php';
+        $fileModel = new SubmissionFile();
+        $submission['files'] = $fileModel->getBySubmission($submissionId);
+
+        return $submission;
+    }
+
+    /**
+     * Get submissions with their files for an office
+     */
+    public function getByOfficeWithFiles($officeId)
+    {
+        $submissions = $this->getByOffice($officeId);
+
+        require_once __DIR__ . '/SubmissionFile.php';
+        $fileModel = new SubmissionFile();
+
+        foreach ($submissions as &$submission) {
+            $submission['files'] = $fileModel->getBySubmission($submission['submission_id']);
+        }
+
+        return $submissions;
     }
 }

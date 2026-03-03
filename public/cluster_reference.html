@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batangas Province - Cluster Assignments</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #092C4C 0%, #1a4870 100%);
+            min-height: 100vh;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .clusters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+        .cluster-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        .cluster-card:hover {
+            transform: translateY(-5px);
+        }
+        .cluster-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid;
+        }
+        .cluster-1 .cluster-header { border-color: #F3AF0E; }
+        .cluster-2 .cluster-header { border-color: #4CAF50; }
+        .cluster-3 .cluster-header { border-color: #2196F3; }
+        .cluster-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            margin-right: 20px;
+        }
+        .cluster-1 .cluster-number { background: #F3AF0E; }
+        .cluster-2 .cluster-number { background: #4CAF50; }
+        .cluster-3 .cluster-number { background: #2196F3; }
+        .cluster-title {
+            flex: 1;
+        }
+        .cluster-title h2 {
+            color: #092C4C;
+            margin-bottom: 5px;
+        }
+        .cluster-title .count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .office-list {
+            list-style: none;
+        }
+        .office-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .cluster-1 .office-item { border-color: #F3AF0E; }
+        .cluster-2 .office-item { border-color: #4CAF50; }
+        .cluster-3 .office-item { border-color: #2196F3; }
+        .office-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        .office-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .type-city {
+            background: #FFE2E2;
+            color: #C62828;
+        }
+        .type-municipality {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+        .office-name {
+            flex: 1;
+            color: #092C4C;
+            font-weight: 500;
+        }
+        .summary {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .summary h3 {
+            color: #092C4C;
+            margin-bottom: 15px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .stat-box {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-box.cluster-1 { background: linear-gradient(135deg, #F3AF0E 0%, #FFC94C 100%); }
+        .stat-box.cluster-2 { background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%); }
+        .stat-box.cluster-3 { background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%); }
+        .stat-box.total { background: linear-gradient(135deg, #092C4C 0%, #1a4870 100%); }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .stat-label {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 20px;
+            }
+            .header {
+                color: #092C4C;
+            }
+            .cluster-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Province of Batangas</h1>
+            <p>LGU Cluster Assignments for LGMES Reporting</p>
+        </div>
+
+        <div class="summary">
+            <h3>Quick Summary</h3>
+            <div class="stats">
+                <div class="stat-box total">
+                    <div class="stat-number">34</div>
+                    <div class="stat-label">Total LGUs</div>
+                </div>
+                <div class="stat-box cluster-1">
+                    <div class="stat-number">9</div>
+                    <div class="stat-label">Cluster 1</div>
+                </div>
+                <div class="stat-box cluster-2">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Cluster 2</div>
+                </div>
+                <div class="stat-box cluster-3">
+                    <div class="stat-number">13</div>
+                    <div class="stat-label">Cluster 3</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="clusters">
+            <!-- Cluster 1 -->
+            <div class="cluster-card cluster-1">
+                <div class="cluster-header">
+                    <div class="cluster-number">1</div>
+                    <div class="cluster-title">
+                        <h2>Cluster 1</h2>
+                        <div class="count">Batangas City Area • 9 LGUs</div>
+                    </div>
+                </div>
+                <ul class="office-list">
+                    <li class="office-item">
+                        <span class="office-type type-city">CITY</span>
+                        <span class="office-name">Batangas City</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-city">CITY</span>
+                        <span class="office-name">City of Calaca</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Balayan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Calatagan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Lemery</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Lian</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Nasugbu</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Taal</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Tuy</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Cluster 2 -->
+            <div class="cluster-card cluster-2">
+                <div class="cluster-header">
+                    <div class="cluster-number">2</div>
+                    <div class="cluster-title">
+                        <h2>Cluster 2</h2>
+                        <div class="count">Bauan Area • 12 LGUs</div>
+                    </div>
+                </div>
+                <ul class="office-list">
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Bauan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Ibaan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Lobo</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Mabini</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Padre Garcia</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Rosario</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">San Luis</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">San Jose</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Taysan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">San Juan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">San Pascual</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Tingloy</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Cluster 3 -->
+            <div class="cluster-card cluster-3">
+                <div class="cluster-header">
+                    <div class="cluster-number">3</div>
+                    <div class="cluster-title">
+                        <h2>Cluster 3</h2>
+                        <div class="count">Lipa Area • 13 LGUs</div>
+                    </div>
+                </div>
+                <ul class="office-list">
+                    <li class="office-item">
+                        <span class="office-type type-city">CITY</span>
+                        <span class="office-name">City of Lipa</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-city">CITY</span>
+                        <span class="office-name">City of Sto. Tomas</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-city">CITY</span>
+                        <span class="office-name">City of Tanauan</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Agoncillo</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Alitagtag</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Balete</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Cuenca</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Laurel</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Malvar</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Mataasnakahoy</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">San Nicolas</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Sta Teresita</span>
+                    </li>
+                    <li class="office-item">
+                        <span class="office-type type-municipality">MUNICIPALITY</span>
+                        <span class="office-name">Talisay</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📁 Files are automatically stored in Google Drive by cluster and submission month</p>
+            <p style="margin-top: 10px;">LGMES - Local Government Monitoring and Evaluation System</p>
+        </div>
+    </div>
+</body>
+</html>
