@@ -294,10 +294,239 @@ class SuperadminController extends Controller
     // ── Reports ──
     public function reports()
     {
+        $reportTypeModel = new ReportType();
         $data = [
-            'title' => 'Reports - LGMES'
+            'title' => 'Report Types - LGMES',
+            'reportTypes' => $reportTypeModel->getAll()
         ];
         $this->view('super_admin/reports', $data);
+    }
+
+    public function createreporttype()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        $reportTypeModel = new ReportType();
+
+        $reportCode = strtoupper(trim($_POST['report_code'] ?? ''));
+        $reportTitle = trim($_POST['report_title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $opr = trim($_POST['opr'] ?? '');
+        $templateLink = trim($_POST['template_link'] ?? '');
+        $deadlineDay = intval($_POST['deadline_day'] ?? 15);
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if (empty($reportCode) || empty($reportTitle)) {
+            $_SESSION['flash_error'] = 'Report code and title are required.';
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        if ($reportTypeModel->codeExists($reportCode)) {
+            $_SESSION['flash_error'] = 'Report code already exists.';
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        $reportTypeModel->create([
+            'report_code' => $reportCode,
+            'report_title' => $reportTitle,
+            'description' => $description,
+            'opr' => $opr,
+            'template_link' => $templateLink,
+            'deadline_day' => $deadlineDay,
+            'is_active' => $isActive
+        ]);
+
+        $_SESSION['flash_success'] = 'Report type created successfully.';
+        $this->redirect('superadmin/reports');
+    }
+
+    public function updatereporttype()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        $reportTypeModel = new ReportType();
+
+        $reportTypeId = intval($_POST['report_type_id'] ?? 0);
+        $reportCode = strtoupper(trim($_POST['report_code'] ?? ''));
+        $reportTitle = trim($_POST['report_title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $opr = trim($_POST['opr'] ?? '');
+        $templateLink = trim($_POST['template_link'] ?? '');
+        $deadlineDay = intval($_POST['deadline_day'] ?? 15);
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if (empty($reportCode) || empty($reportTitle)) {
+            $_SESSION['flash_error'] = 'Report code and title are required.';
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        if ($reportTypeModel->codeExists($reportCode, $reportTypeId)) {
+            $_SESSION['flash_error'] = 'Report code already exists.';
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        $reportTypeModel->update($reportTypeId, [
+            'report_code' => $reportCode,
+            'report_title' => $reportTitle,
+            'description' => $description,
+            'opr' => $opr,
+            'template_link' => $templateLink,
+            'deadline_day' => $deadlineDay,
+            'is_active' => $isActive
+        ]);
+
+        $_SESSION['flash_success'] = 'Report type updated successfully.';
+        $this->redirect('superadmin/reports');
+    }
+
+    public function deletereporttype()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/reports');
+            return;
+        }
+
+        $reportTypeModel = new ReportType();
+        $reportTypeId = intval($_POST['report_type_id'] ?? 0);
+
+        $reportTypeModel->delete($reportTypeId);
+
+        $_SESSION['flash_success'] = 'Report type deleted successfully.';
+        $this->redirect('superadmin/reports');
+    }
+
+    // ── Reporting Periods ──
+    public function periods()
+    {
+        $reportingPeriodModel = new ReportingPeriod();
+        $data = [
+            'title' => 'Reporting Periods - LGMES',
+            'periods' => $reportingPeriodModel->getAll(),
+            'periodModel' => $reportingPeriodModel
+        ];
+        $this->view('super_admin/periods', $data);
+    }
+
+    public function createperiod()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        $reportingPeriodModel = new ReportingPeriod();
+
+        $periodMonth = intval($_POST['period_month'] ?? 0);
+        $periodYear = intval($_POST['period_year'] ?? date('Y'));
+        $deadline = $_POST['deadline'] ?? null;
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if ($periodMonth < 1 || $periodMonth > 12) {
+            $_SESSION['flash_error'] = 'Invalid month selected.';
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        if ($reportingPeriodModel->periodExists($periodMonth, $periodYear)) {
+            $_SESSION['flash_error'] = 'This reporting period already exists.';
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        $reportingPeriodModel->create([
+            'period_month' => $periodMonth,
+            'period_year' => $periodYear,
+            'deadline' => $deadline,
+            'is_active' => $isActive
+        ]);
+
+        $_SESSION['flash_success'] = 'Reporting period created successfully.';
+        $this->redirect('superadmin/periods');
+    }
+
+    public function updateperiod()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        $reportingPeriodModel = new ReportingPeriod();
+
+        $periodId = intval($_POST['period_id'] ?? 0);
+        $periodMonth = intval($_POST['period_month'] ?? 0);
+        $periodYear = intval($_POST['period_year'] ?? date('Y'));
+        $deadline = $_POST['deadline'] ?? null;
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if ($periodMonth < 1 || $periodMonth > 12) {
+            $_SESSION['flash_error'] = 'Invalid month selected.';
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        if ($reportingPeriodModel->periodExists($periodMonth, $periodYear, $periodId)) {
+            $_SESSION['flash_error'] = 'This reporting period already exists.';
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        $reportingPeriodModel->update($periodId, [
+            'period_month' => $periodMonth,
+            'period_year' => $periodYear,
+            'deadline' => $deadline,
+            'is_active' => $isActive
+        ]);
+
+        $_SESSION['flash_success'] = 'Reporting period updated successfully.';
+        $this->redirect('superadmin/periods');
+    }
+
+    public function deleteperiod()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('superadmin/periods');
+            return;
+        }
+
+        $reportingPeriodModel = new ReportingPeriod();
+        $periodId = intval($_POST['period_id'] ?? 0);
+
+        $reportingPeriodModel->delete($periodId);
+
+        $_SESSION['flash_success'] = 'Reporting period deleted successfully.';
+        $this->redirect('superadmin/periods');
+    }
+
+    // ── Submissions ──
+    public function submissions()
+    {
+        $reportTypeModel = new ReportType();
+        $reportingPeriodModel = new ReportingPeriod();
+
+        // Get all submissions
+        $submissions = $this->submissionModel->getAll();
+
+        $data = [
+            'title' => 'Submissions - LGMES',
+            'submissions' => $submissions,
+            'offices' => $this->officeModel->getAll(),
+            'reportTypes' => $reportTypeModel->getAll(),
+            'periods' => $reportingPeriodModel->getAll(),
+            'periodModel' => $reportingPeriodModel
+        ];
+
+        $this->view('super_admin/submissions', $data);
     }
 
     // ── Audit Logs ──

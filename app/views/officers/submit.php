@@ -82,7 +82,8 @@
                                 ?>
                                     <option value="<?php echo $p['period_id']; ?>"
                                         data-month="<?php echo $p['period_month']; ?>"
-                                        data-year="<?php echo $p['period_year']; ?>">
+                                        data-year="<?php echo $p['period_year']; ?>"
+                                        data-deadline="<?php echo $p['deadline'] ? date('M d, Y', strtotime($p['deadline'])) : ''; ?>">
                                         <?php echo $periodHelper->getMonthName($p['period_month']) . ' ' . $p['period_year']; ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -208,22 +209,24 @@
 
                 reportOpr.textContent = opr;
 
-                // Calculate deadline
+                // Show period deadline (set by Super Admin)
                 if (periodSelect.value && selectedPeriod) {
-                    const month = selectedPeriod.dataset.month;
-                    const year = selectedPeriod.dataset.year;
-                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    reportDeadline.textContent = monthNames[month - 1] + ' ' + deadlineDay + ', ' + year;
+                    const deadline = selectedPeriod.dataset.deadline;
 
-                    // Check if deadline has passed
-                    const deadlineDate = new Date(year, month - 1, deadlineDay, 23, 59, 59);
-                    const now = new Date();
-                    if (now > deadlineDate) {
-                        reportDeadline.innerHTML = monthNames[month - 1] + ' ' + deadlineDay + ', ' + year +
-                            ' <span class="badge bg-warning text-dark ms-1">Deadline Passed</span>';
+                    if (deadline) {
+                        reportDeadline.textContent = deadline;
+
+                        // Check if deadline has passed
+                        const deadlineDate = new Date(deadline);
+                        const now = new Date();
+                        if (now > deadlineDate) {
+                            reportDeadline.innerHTML = deadline + ' <span class="badge bg-warning text-dark ms-1">Late Submission</span>';
+                        }
+                    } else {
+                        reportDeadline.textContent = 'No deadline set';
                     }
                 } else {
-                    reportDeadline.textContent = 'Day ' + deadlineDay + ' of selected month';
+                    reportDeadline.textContent = 'Select period to see deadline';
                 }
 
                 // Show/hide template link

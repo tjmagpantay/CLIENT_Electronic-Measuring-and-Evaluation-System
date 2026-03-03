@@ -11,7 +11,7 @@ class Submission
 
     public function getAll()
     {
-        $sql = "SELECT s.*, o.office_name, o.office_type,
+        $sql = "SELECT s.*, o.office_name, o.office_type, o.cluster,
                        rt.report_code, rt.report_title,
                        rp.period_month, rp.period_year,
                        u.firstname, u.lastname

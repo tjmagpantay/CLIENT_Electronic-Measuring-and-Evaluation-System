@@ -19,6 +19,7 @@ Thumbs.db
 config/google_drive_credentials.json
 
 # Sensitive config files with actual database passwords/keys
+config/
 config/env.php
 config/database.php
 config/config.php

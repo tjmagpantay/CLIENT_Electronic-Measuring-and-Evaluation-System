@@ -68,4 +68,69 @@ class ReportType
         $reportType = $this->getById($id);
         return $reportType['deadline_day'] ?? 15; // Default to 15th of the month
     }
+
+    /**
+     * Create a new report type
+     */
+    public function create($data)
+    {
+        $sql = "INSERT INTO report_types (report_code, report_title, description, opr, template_link, deadline_day, is_active) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        return $this->db->query($sql, [
+            $data['report_code'],
+            $data['report_title'],
+            $data['description'] ?? null,
+            $data['opr'] ?? null,
+            $data['template_link'] ?? null,
+            $data['deadline_day'] ?? 15,
+            $data['is_active'] ?? 1
+        ]);
+    }
+
+    /**
+     * Update an existing report type
+     */
+    public function update($id, $data)
+    {
+        $sql = "UPDATE report_types 
+                SET report_code = ?, report_title = ?, description = ?, opr = ?, 
+                    template_link = ?, deadline_day = ?, is_active = ? 
+                WHERE report_type_id = ?";
+
+        return $this->db->query($sql, [
+            $data['report_code'],
+            $data['report_title'],
+            $data['description'] ?? null,
+            $data['opr'] ?? null,
+            $data['template_link'] ?? null,
+            $data['deadline_day'] ?? 15,
+            $data['is_active'] ?? 1,
+            $id
+        ]);
+    }
+
+    /**
+     * Delete a report type (soft delete by setting inactive)
+     */
+    public function delete($id)
+    {
+        $sql = "UPDATE report_types SET is_active = 0 WHERE report_type_id = ?";
+        return $this->db->query($sql, [$id]);
+    }
+
+    /**
+     * Check if report code already exists
+     */
+    public function codeExists($code, $excludeId = null)
+    {
+        if ($excludeId) {
+            $sql = "SELECT COUNT(*) as count FROM report_types WHERE report_code = ? AND report_type_id != ?";
+            $result = $this->db->fetch($sql, [$code, $excludeId]);
+        } else {
+            $sql = "SELECT COUNT(*) as count FROM report_types WHERE report_code = ?";
+            $result = $this->db->fetch($sql, [$code]);
+        }
+        return $result['count'] > 0;
+    }
 }

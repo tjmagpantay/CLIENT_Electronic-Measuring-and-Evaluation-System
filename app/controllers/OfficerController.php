@@ -140,11 +140,12 @@ class OfficerController extends Controller
             mkdir($uploadsDir, 0755, true);
         }
 
-        // Determine ON_TIME or LATE status
+        // Determine ON_TIME or LATE status based on period deadline
         $period = $this->periodModel->getById($periodId);
         $reportType = $this->reportTypeModel->getById($reportTypeId);
-        $deadlineDay = $reportType['deadline_day'] ?? 15;
-        $deadlineDate = sprintf('%04d-%02d-%02d 23:59:59', $period['period_year'], $period['period_month'], $deadlineDay);
+
+        // Use the deadline set by Super Admin for this period
+        $deadlineDate = $period['deadline'] ?? date('Y-m-d 23:59:59', strtotime('+1 month'));
         $status = (date('Y-m-d H:i:s') <= $deadlineDate) ? 'ON_TIME' : 'LATE';
 
         // Initialize Google Drive Service
@@ -203,16 +204,16 @@ class OfficerController extends Controller
                 'file_path' => 'uploads/temp/' . $filename, // Temporary local path
                 'file_size' => $files['size'][$i],
                 'file_type' => $ext,
-                'google_drive_id' => $driveResult['success'] ? $driveResult['file_id'] : null,
-                'google_drive_link' => $driveResult['success'] ? $driveResult['web_link'] : null
+                'google_drive_id' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['file_id'] : null,
+                'google_drive_link' => ($driveResult && isset($driveResult['success']) && $driveResult['success']) ? $driveResult['web_link'] : null
             ]);
 
-            if ($driveResult && $driveResult['success']) {
+            if ($driveResult && isset($driveResult['success']) && $driveResult['success']) {
                 $uploadedFiles[] = $filename;
                 // Delete temp file after successful Drive upload
                 @unlink($tempPath);
             } else {
-                $driveErrors[] = $filename . ': ' . ($driveResult['error'] ?? 'Unknown error');
+                $driveErrors[] = $filename . ': ' . (($driveResult && isset($driveResult['error'])) ? $driveResult['error'] : 'Google Drive not configured');
             }
         }
 

@@ -30,16 +30,28 @@ function isActive($page, $current)
             <span>Dashboard</span>
         </a>
     </li>
-    <li class="sidebar-item <?php echo isActive('reports', $currentPage); ?>">
-        <a href="<?php echo env('APP_URL'); ?>/superadmin/reports" class="sidebar-link">
-            <i class="bi bi-bar-chart-line"></i>
-            <span>Reports</span>
+    <li class="sidebar-item <?php echo isActive('offices', $currentPage); ?>">
+        <a href="<?php echo env('APP_URL'); ?>/superadmin/offices" class="sidebar-link">
+            <i class="bi bi-building"></i>
+            <span>Offices</span>
         </a>
     </li>
-    <li class="sidebar-item <?php echo isActive('logs', $currentPage); ?>">
-        <a href="<?php echo env('APP_URL'); ?>/superadmin/logs" class="sidebar-link">
-            <i class="bi bi-journal-text"></i>
-            <span>Audit Logs</span>
+    <li class="sidebar-item <?php echo isActive('reports', $currentPage); ?>">
+        <a href="<?php echo env('APP_URL'); ?>/superadmin/reports" class="sidebar-link">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Report Types</span>
+        </a>
+    </li>
+    <li class="sidebar-item <?php echo isActive('periods', $currentPage); ?>">
+        <a href="<?php echo env('APP_URL'); ?>/superadmin/periods" class="sidebar-link">
+            <i class="bi bi-calendar3"></i>
+            <span>Reporting Periods</span>
+        </a>
+    </li>
+    <li class="sidebar-item <?php echo isActive('submissions', $currentPage); ?>">
+        <a href="<?php echo env('APP_URL'); ?>/superadmin/submissions" class="sidebar-link">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Submissions</span>
         </a>
     </li>
     <li class="sidebar-item <?php echo isActive('users', $currentPage); ?>">
@@ -52,6 +64,12 @@ function isActive($page, $current)
         <a href="<?php echo env('APP_URL'); ?>/superadmin/announcements" class="sidebar-link">
             <i class="bi bi-megaphone"></i>
             <span>Announcement</span>
+        </a>
+    </li>
+    <li class="sidebar-item <?php echo isActive('logs', $currentPage); ?>">
+        <a href="<?php echo env('APP_URL'); ?>/superadmin/logs" class="sidebar-link">
+            <i class="bi bi-journal-text"></i>
+            <span>Audit Logs</span>
         </a>
     </li>
     <li class="sidebar-item <?php echo isActive('settings', $currentPage); ?>">
