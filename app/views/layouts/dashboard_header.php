@@ -57,15 +57,37 @@ switch ($role) {
             <div class="dropdown">
                 <a class="d-flex align-items-center text-decoration-none dropdown-toggle navbar-user-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="user-avatar me-2">
-                        <i class="bi bi-person-circle fs-4"></i>
+                        <?php if (!empty($_SESSION['profile'])): ?>
+                            <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #092C4C;">
+                        <?php else: ?>
+                            <i class="bi bi-person-circle fs-4"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="d-none d-sm-block text-end lh-sm">
                         <span class="fw-semibold small"><?php echo $fullname; ?></span><br>
                         <span class="user-role"><?php echo $roleLabel; ?></span>
                     </div>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" href="<?php echo env('APP_URL'); ?>/<?php echo $roleBase; ?>/settings"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 280px;">
+                    <!-- Profile Quick View -->
+                    <li class="px-3 py-2">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-3">
+                                <?php if (!empty($_SESSION['profile'])): ?>
+                                    <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #092C4C;">
+                                <?php else: ?>
+                                    <i class="bi bi-person-circle" style="font-size: 3rem; color: #092C4C;"></i>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <div class="fw-bold"><?php echo $fullname; ?></div>
+                                <div class="text-muted small"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></div>
+                            </div>
+                        </div>
+                        <a href="<?php echo env('APP_URL'); ?>/<?php echo $roleBase; ?>/settings" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-gear me-1"></i> Manage Profile
+                        </a>
+                    </li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -79,8 +101,8 @@ switch ($role) {
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-search px-3 pt-3 pb-2">
             <div class="position-relative">
-                <i class="bi bi-search position-absolute" style="left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 0.8rem;"></i>
-                <input type="text" class="form-control form-control-sm" id="sidebarSearch" placeholder="Search menu..." style="padding-left: 32px; background-color: #f0f2f5; border: none; border-radius: 8px; font-size: 0.8rem;">
+                <i class="bi bi-search position-absolute" style="left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 0.8rem; z-index: 10;"></i>
+                <input type="text" class="form-control form-control-sm" id="sidebarSearch" placeholder="Search menu..." style="padding-left: 35px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.8rem;">
             </div>
         </div>
         <ul class="sidebar-nav">

@@ -148,16 +148,23 @@ function isActive($page, $current)
             <span>Submit Report</span>
         </a>
     </li>
-    <li class="sidebar-item <?php echo isActive('office', $currentPage); ?>">
-        <a href="<?php echo env('APP_URL'); ?>/officer/office" class="sidebar-link">
-            <i class="bi bi-building"></i>
-            <span>My Office</span>
-        </a>
-    </li>
     <li class="sidebar-item <?php echo isActive('settings', $currentPage); ?>">
         <a href="<?php echo env('APP_URL'); ?>/officer/settings" class="sidebar-link">
             <i class="bi bi-gear"></i>
             <span>Settings</span>
+        </a>
+    </li>
+<?php endif; ?>
+
+<!-- Spacer to push logout to bottom (only for officers) -->
+<?php if ($role === 'LGU_OFFICER'): ?>
+    <li style="flex-grow: 1; min-height: 20px;"></li>
+
+    <!-- Logout Button at Very Bottom -->
+    <li class="sidebar-item">
+        <a href="<?php echo env('APP_URL'); ?>/auth/logout" class="sidebar-link text-danger">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
         </a>
     </li>
 <?php endif; ?>

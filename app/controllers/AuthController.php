@@ -82,6 +82,7 @@ class AuthController extends Controller
         $this->setSession('lastname', $user['lastname']);
         $this->setSession('role', $user['role']);
         $this->setSession('office_id', $user['office_id']);
+        $this->setSession('profile', $user['profile'] ?? '');
 
         // Regenerate session ID to prevent session fixation
         session_regenerate_id(true);

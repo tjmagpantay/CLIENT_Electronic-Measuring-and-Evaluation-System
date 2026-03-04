@@ -33,12 +33,19 @@ class OfficerController extends Controller
         $officeId = $_SESSION['office_id'] ?? null;
         $announcementModel = new Announcement();
 
+        $onTimeCount  = $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'ON_TIME') : 0;
+        $overdueCount = $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'LATE') : 0;
+        $pendingCount = $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'NO_SUBMISSION') : 0;
+
         $data = [
-            'title' => 'Officer Dashboard - LGMES',
-            'submittedCount' => $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'ON_TIME') + $this->submissionModel->countByOfficeAndStatus($officeId, 'LATE') : 0,
-            'pendingCount' => $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'NO_SUBMISSION') : 0,
-            'overdueCount' => $officeId ? $this->submissionModel->countByOfficeAndStatus($officeId, 'LATE') : 0,
-            'announcements' => $announcementModel->getActive()
+            'title'             => 'Officer Dashboard - LGMES',
+            'onTimeCount'       => $onTimeCount,
+            'submittedCount'    => $onTimeCount + $overdueCount,
+            'pendingCount'      => $pendingCount,
+            'overdueCount'      => $overdueCount,
+            'recentSubmissions' => $officeId ? $this->submissionModel->getByOffice($officeId) : [],
+            'activePeriod'      => $this->periodModel->getCurrentPeriod(),
+            'announcements'     => $announcementModel->getActive()
         ];
         $this->view('officers/index', $data);
     }
@@ -284,16 +291,6 @@ class OfficerController extends Controller
         $this->view('officers/submit', $data);
     }
 
-    public function office()
-    {
-        $officeId = $_SESSION['office_id'] ?? null;
-        $data = [
-            'title' => 'My Office - LGMES',
-            'office' => $officeId ? $this->officeModel->getById($officeId) : null
-        ];
-        $this->view('officers/office', $data);
-    }
-
     private function renderSubmitWithError($error)
     {
         $officeId = $_SESSION['office_id'] ?? null;
@@ -311,8 +308,10 @@ class OfficerController extends Controller
     public function settings()
     {
         $user = $this->userModel->findById($_SESSION['user_id']);
+        $officeId = $_SESSION['office_id'] ?? null;
         $data = [
             'title' => 'Settings - LGMES',
+            'office' => $officeId ? $this->officeModel->getById($officeId) : null,
             'user' => $user,
             'success' => '',
             'error' => ''
@@ -338,48 +337,101 @@ class OfficerController extends Controller
 
         if (empty($firstname) || empty($lastname) || empty($email)) {
             $user = $this->userModel->findById($userId);
-            $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'success' => '', 'error' => 'First name, last name, and email are required.']);
+            $officeId = $_SESSION['office_id'] ?? null;
+            $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => '', 'error' => 'First name, last name, and email are required.']);
             return;
         }
 
         $existingUser = $this->userModel->findByEmail($email);
         if ($existingUser && $existingUser['user_id'] != $userId) {
             $user = $this->userModel->findById($userId);
-            $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'success' => '', 'error' => 'Email is already in use by another account.']);
+            $officeId = $_SESSION['office_id'] ?? null;
+            $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => '', 'error' => 'Email is already in use by another account.']);
             return;
         }
 
-        $this->userModel->updateProfile($userId, [
+        // Handle profile image upload
+        $profilePath = null;
+        if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['profile_image'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+
+            if (!in_array($ext, $allowed)) {
+                $user = $this->userModel->findById($userId);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => '', 'error' => 'Invalid image type. Allowed: JPG, PNG, GIF.']);
+                return;
+            }
+
+            if ($file['size'] > 2 * 1024 * 1024) {
+                $user = $this->userModel->findById($userId);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => '', 'error' => 'Image size must not exceed 2MB.']);
+                return;
+            }
+
+            $uploadsDir = __DIR__ . '/../../public/uploads/profiles/';
+            if (!is_dir($uploadsDir)) {
+                mkdir($uploadsDir, 0755, true);
+            }
+
+            // Delete old profile image if exists
+            $oldUser = $this->userModel->findById($userId);
+            if (!empty($oldUser['profile']) && file_exists(__DIR__ . '/../../public/' . $oldUser['profile'])) {
+                unlink(__DIR__ . '/../../public/' . $oldUser['profile']);
+            }
+
+            $filename = 'profile_' . $userId . '_' . time() . '.' . $ext;
+            if (move_uploaded_file($file['tmp_name'], $uploadsDir . $filename)) {
+                $profilePath = 'uploads/profiles/' . $filename;
+            }
+        }
+
+        $updateData = [
             'firstname' => $firstname,
             'lastname' => $lastname,
             'middlename' => $middlename,
             'email' => $email
-        ]);
+        ];
+
+        if ($profilePath) {
+            $updateData['profile'] = $profilePath;
+            $_SESSION['profile'] = $profilePath;
+        }
+
+        $this->userModel->updateProfile($userId, $updateData);
 
         $_SESSION['firstname'] = $firstname;
         $_SESSION['lastname'] = $lastname;
+        $_SESSION['email'] = $email;
 
         if (!empty($newPassword)) {
             $user = $this->userModel->findById($userId);
             if (empty($currentPassword)) {
-                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'success' => 'Profile updated.', 'error' => 'Current password is required to change password.']);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => 'Profile updated.', 'error' => 'Current password is required to change password.']);
                 return;
             }
             if (!password_verify($currentPassword, $user['password_hash'])) {
-                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'success' => 'Profile updated.', 'error' => 'Current password is incorrect.']);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => 'Profile updated.', 'error' => 'Current password is incorrect.']);
                 return;
             }
             if ($newPassword !== $confirmPassword) {
-                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'success' => 'Profile updated.', 'error' => 'New passwords do not match.']);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => 'Profile updated.', 'error' => 'New passwords do not match.']);
                 return;
             }
             if (strlen($newPassword) < 6) {
-                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'success' => 'Profile updated.', 'error' => 'New password must be at least 6 characters.']);
+                $officeId = $_SESSION['office_id'] ?? null;
+                $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => 'Profile updated.', 'error' => 'New password must be at least 6 characters.']);
                 return;
             }
             $this->userModel->updatePassword($userId, $newPassword);
         }
 
-        $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'success' => 'Profile updated successfully.', 'error' => '']);
+        $officeId = $_SESSION['office_id'] ?? null;
+        $this->view('officers/settings', ['title' => 'Settings - LGMES', 'user' => $this->userModel->findById($userId), 'office' => $officeId ? $this->officeModel->getById($officeId) : null, 'success' => 'Profile updated successfully.', 'error' => '']);
     }
 }
