@@ -1,14 +1,14 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-3 mt-auto" style="background-color: #092C4C;">
-        <div class="container">
+    <footer class="dashboard-footer">
+        <div class="container-fluid px-4">
             <div class="row align-items-center">
-                <div class="col-md-6 text-white">
-                    <small>&copy; 2026 LGMES. All rights reserved.</small>
+                <div class="col-md-6">
+                    <small class="text-muted">&copy; 2026 LGMES. All rights reserved.</small>
                 </div>
-                <div class="col-md-6 text-md-end text-white">
-                    <small>Department of the Interior and Local Government</small>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">Department of the Interior and Local Government</small>
                 </div>
             </div>
         </div>

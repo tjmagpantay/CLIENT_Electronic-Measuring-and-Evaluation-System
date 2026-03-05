@@ -19,12 +19,15 @@
 
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
-    <nav class="navbar navbar-dark" style="background-color: #092C4C;">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?php echo env('APP_URL'); ?>">
-                <img src="<?php echo env('APP_URL'); ?>/public/img/dilg_logo.png" alt="DILG Logo" height="40" class="me-2">
-                <span class="fw-bold">LGMES</span>
-            </a>
+    <nav class="navbar fixed-top dashboard-topnav">
+            <!-- Left: Hamburger + Brand -->
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand d-flex align-items-center mb-0" href="<?php echo env('APP_URL'); ?>">
+                    <img src="<?php echo env('APP_URL'); ?>/public/img/dilg_logo.png" alt="DILG Logo" height="48" class="me-2">
+                    <span class="fw-bold">LGMES</span>
+                </a>
+            </div>
         </div>
     </nav>
 
