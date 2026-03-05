@@ -275,6 +275,13 @@ body.sidebar-collapsed .dashboard-content {
     box-shadow: 0 0 0 0.2rem rgba(9, 44, 76, 0.15);
 }
 
+/* Fix Bootstrap 5 table thead background — Bootstrap uses --bs-table-bg on th/td
+   which overrides background set on the parent <tr>. Force th to inherit. */
+.table > thead > tr > th {
+    background-color: inherit !important;
+    color: inherit !important;
+}
+
 /* Responsive - Dashboard */
 @media (max-width: 991.98px) {
     .sidebar {

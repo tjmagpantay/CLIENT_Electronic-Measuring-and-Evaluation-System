@@ -53,51 +53,66 @@ switch ($role) {
                 </a>
             </div>
 
-            <!-- Right: User Profile -->
-            <div class="dropdown">
-                <a class="d-flex align-items-center gap-2 text-decoration-none navbar-user-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:#f4f6f9;border:1px solid #e2e6ea;border-radius:8px;padding:5px 12px 5px 12px;transition:background .2s;">
-                    <!-- Avatar -->
-                    <?php if (!empty($_SESSION['profile'])): ?>
-                        <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle flex-shrink-0" style="width:36px;height:36px;object-fit:cover;border:2px solid #092C4C;">
-                    <?php else: ?>
-                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:#092C4C;">
-                            <i class="bi bi-person-fill" style="color:#fff;font-size:.95rem;"></i>
-                        </span>
-                    <?php endif; ?>
-                    <!-- Name & role -->
-                    <div class="d-none d-sm-block lh-sm">
-                        <div class="fw-semibold" style="font-size:.82rem;color:#092C4C;"><?php echo $fullname; ?></div>
-                        <div style="font-size:.72rem;color:#6c757d;"><?php echo $roleLabel; ?></div>
-                    </div>
-                    <!-- Modern chevron -->
-                    <i class="bi bi-chevron-down d-none d-sm-inline" style="font-size:.7rem;color:#6c757d;margin-left:2px;"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 280px;">
-                    <!-- Profile Quick View -->
-                    <li class="px-3 py-2">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="me-3">
-                                <?php if (!empty($_SESSION['profile'])): ?>
-                                    <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #092C4C;">
-                                <?php else: ?>
-                                    <i class="bi bi-person-circle" style="font-size: 3rem; color: #092C4C;"></i>
-                                <?php endif; ?>
-                            </div>
-                            <div>
-                                <div class="fw-bold"><?php echo $fullname; ?></div>
-                                <div class="text-muted small"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></div>
-                            </div>
+            <!-- Right: Notifications + User Profile -->
+            <div class="d-flex align-items-center gap-2">
+
+                <!-- Notification Bell -->
+                <button class="btn position-relative p-2 d-flex align-items-center justify-content-center" style="width:46px;height:46px;background:#f4f6f9;border:1px solid #e2e6ea;border-radius:8px;" title="Notifications" disabled="">
+                    <i class="bi bi-bell" style="font-size:1rem;color:#092C4C;"></i>
+                    <!-- Badge placeholder — uncomment when notification feature is live:
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem;">3</span>
+                -->
+                </button>
+
+
+
+                <!-- User Profile -->
+                <div class="dropdown">
+                    <a class="d-flex align-items-center gap-2 text-decoration-none navbar-user-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:#f4f6f9;border:1px solid #e2e6ea;border-radius:8px;padding:5px 12px 5px 12px;transition:background .2s;">
+                        <!-- Avatar -->
+                        <?php if (!empty($_SESSION['profile'])): ?>
+                            <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle flex-shrink-0" style="width:36px;height:36px;object-fit:cover;border:2px solid #092C4C;">
+                        <?php else: ?>
+                            <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:#092C4C;">
+                                <i class="bi bi-person-fill" style="color:#fff;font-size:.95rem;"></i>
+                            </span>
+                        <?php endif; ?>
+                        <!-- Name & role -->
+                        <div class="d-none d-sm-block lh-sm">
+                            <div class="fw-semibold" style="font-size:.82rem;color:#092C4C;"><?php echo $fullname; ?></div>
+                            <div style="font-size:.72rem;color:#6c757d;"><?php echo $roleLabel; ?></div>
                         </div>
-                        <a href="<?php echo env('APP_URL'); ?>/<?php echo $roleBase; ?>/settings" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-gear me-1"></i> Manage Profile
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item text-danger" href="<?php echo env('APP_URL'); ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                </ul>
-            </div>
+                        <!-- Modern chevron -->
+                        <i class="bi bi-chevron-down d-none d-sm-inline" style="font-size:.7rem;color:#6c757d;margin-left:2px;"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 280px;">
+                        <!-- Profile Quick View -->
+                        <li class="px-3 py-2">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-3">
+                                    <?php if (!empty($_SESSION['profile'])): ?>
+                                        <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #092C4C;">
+                                    <?php else: ?>
+                                        <i class="bi bi-person-circle" style="font-size: 3rem; color: #092C4C;"></i>
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <div class="fw-bold"><?php echo $fullname; ?></div>
+                                    <div class="text-muted small"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></div>
+                                </div>
+                            </div>
+                            <a href="<?php echo env('APP_URL'); ?>/<?php echo $roleBase; ?>/settings" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-gear me-1"></i> Manage Profile
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="<?php echo env('APP_URL'); ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+
+            </div><!-- /d-flex notifications+profile -->
         </div>
     </nav>
 
@@ -106,7 +121,7 @@ switch ($role) {
         <div class="sidebar-search px-3 pt-3 pb-2">
             <div class="position-relative">
                 <i class="bi bi-search position-absolute" style="left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 0.8rem; z-index: 10;"></i>
-                <input type="text" class="form-control form-control-sm" id="sidebarSearch" placeholder="Search menu..." style="padding-left: 35px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.8rem;">
+                <input type="text" class="form-control form-control-sm py-2" id="sidebarSearch" placeholder="Search menu..." style="padding-left: 35px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.8rem;">
             </div>
         </div>
         <ul class="sidebar-nav">
