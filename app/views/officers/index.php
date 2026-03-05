@@ -91,87 +91,84 @@ function announcementUrgency($expiry)
         </div><!-- /Stat Cards Row -->
 
         <!-- Office Compliance Status Table -->
-        <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body p-0">
-                <div class="px-4 pt-4 pb-2">
-                    <h6 class="fw-bold mb-0" style="color:#092C4C;">Office Compliance Status</h6>
-                    <p class="text-muted mb-0" style="font-size:.78rem;">List of report submissions and their current status.</p>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size:.85rem;">
-                        <thead style="background:#092C4C; color:#fff;">
+        <div class="border-0 shadow-sm" style="border-radius:16px;overflow:hidden;background:#fff;">
+            <div class="px-4 pt-4 pb-2">
+                <h6 class="fw-bold mb-0" style="color:#092C4C;">Office Compliance Status</h6>
+                <p class="text-muted mb-0" style="font-size:.78rem;">List of report submissions and their current status.</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:.85rem;">
+                    <thead>
+                        <tr style="background:#092C4C;color:#fff;">
+                            <th class="px-4 py-3 fw-semibold border-0">Report</th>
+                            <th class="py-3 fw-semibold border-0">Status</th>
+                            <th class="py-3 fw-semibold border-0">% Completion</th>
+                            <th class="py-3 fw-semibold border-0">Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($recentSubmissions)): ?>
                             <tr>
-                                <th class="px-4 py-3 fw-semibold border-0">Report</th>
-                                <th class="py-3 fw-semibold border-0">Status</th>
-                                <th class="py-3 fw-semibold border-0">% Completion</th>
-                                <th class="py-3 fw-semibold border-0">Due Date</th>
+                                <td colspan="4" class="text-center text-muted py-4 px-4">No submissions found.</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($recentSubmissions)): ?>
+                        <?php else: ?>
+                            <?php foreach ($recentSubmissions as $sub):
+                                $status = $sub['submission_status'] ?? 'NO_SUBMISSION';
+                                $badgeStyle = '';
+                                switch ($status) {
+                                    case 'ON_TIME':
+                                        $badgeClass = 'bg-success';
+                                        $badgeLabel = 'Completed';
+                                        $pct        = 100;
+                                        $barColor   = '#43A047';
+                                        break;
+                                    case 'LATE':
+                                        $badgeClass = 'text-white';
+                                        $badgeStyle = 'background:#FB8C00;';
+                                        $badgeLabel = 'Late';
+                                        $pct        = 100;
+                                        $barColor   = '#FB8C00';
+                                        break;
+                                    case 'PENDING':
+                                        $badgeClass = 'text-dark';
+                                        $badgeStyle = 'background:#FDD835;';
+                                        $badgeLabel = 'Ongoing';
+                                        $pct        = 60;
+                                        $barColor   = '#FDD835';
+                                        break;
+                                    default: // NO_SUBMISSION
+                                        $badgeClass = 'bg-danger';
+                                        $badgeLabel = 'Non Compliant';
+                                        $pct        = 0;
+                                        $barColor   = '#E53935';
+                                }
+                            ?>
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-4 px-4">No submissions found.</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($recentSubmissions as $sub):
-                                    $status = $sub['submission_status'] ?? 'NO_SUBMISSION';
-                                    switch ($status) {
-                                        case 'ON_TIME':
-                                            $badgeClass = 'bg-success';
-                                            $badgeLabel = 'Completed';
-                                            $pct        = 100;
-                                            $barColor   = '#43A047';
-                                            break;
-                                        case 'LATE':
-                                            $badgeClass = 'text-white';
-                                            $badgeStyle = 'background:#FB8C00;';
-                                            $badgeLabel = 'Late';
-                                            $pct        = 100;
-                                            $barColor   = '#FB8C00';
-                                            break;
-                                        case 'PENDING':
-                                            $badgeClass = 'text-dark';
-                                            $badgeStyle = 'background:#FDD835;';
-                                            $badgeLabel = 'Ongoing';
-                                            $pct        = 60;
-                                            $barColor   = '#FDD835';
-                                            break;
-                                        default: // NO_SUBMISSION
-                                            $badgeClass = 'bg-danger';
-                                            $badgeLabel = 'Non Compliant';
-                                            $pct        = 0;
-                                            $barColor   = '#E53935';
-                                    }
-                                    if (!isset($badgeStyle)) $badgeStyle = '';
-                                ?>
-                                    <tr>
-                                        <td class="px-4 py-3">
-                                            <div class="fw-semibold" style="color:#092C4C;"><?php echo htmlspecialchars($sub['report_title']); ?></div>
-                                            <div class="text-muted" style="font-size:.75rem;"><?php echo htmlspecialchars($sub['report_code']); ?></div>
-                                        </td>
-                                        <td class="py-3">
-                                            <span class="badge rounded-pill px-3 py-2 <?php echo $badgeClass; ?>" style="font-size:.75rem;<?php echo $badgeStyle; ?>">
-                                                <?php echo $badgeLabel; ?>
-                                            </span>
-                                        </td>
-                                        <td class="py-3" style="min-width:130px;">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="flex-grow-1" style="height:6px;background:#E0E0E0;border-radius:4px;overflow:hidden;">
-                                                    <div style="width:<?php echo $pct; ?>%;height:100%;background:<?php echo $barColor; ?>;border-radius:4px;"></div>
-                                                </div>
-                                                <span class="text-muted" style="font-size:.75rem;white-space:nowrap;"><?php echo $pct; ?>%</span>
+                                    <td class="px-4 py-3">
+                                        <div class="fw-semibold" style="color:#092C4C;"><?php echo htmlspecialchars($sub['report_title']); ?></div>
+                                        <div class="text-muted" style="font-size:.75rem;"><?php echo htmlspecialchars($sub['report_code']); ?></div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge rounded-pill px-3 py-2 <?php echo $badgeClass; ?>" style="font-size:.75rem;<?php echo $badgeStyle; ?>">
+                                            <?php echo $badgeLabel; ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3" style="min-width:130px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="flex-grow-1" style="height:6px;background:#E0E0E0;border-radius:4px;overflow:hidden;">
+                                                <div style="width:<?php echo $pct; ?>%;height:100%;background:<?php echo $barColor; ?>;border-radius:4px;"></div>
                                             </div>
-                                        </td>
-                                        <td class="py-3 text-muted">
-                                            <?php echo !empty($sub['deadline']) ? date('M d, Y', strtotime($sub['deadline'])) : '—'; ?>
-                                        </td>
-                                    </tr>
-                                <?php unset($badgeStyle);
-                                endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                            <span class="text-muted" style="font-size:.75rem;white-space:nowrap;"><?php echo $pct; ?>%</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-muted">
+                                        <?php echo !empty($sub['deadline']) ? date('M d, Y', strtotime($sub['deadline'])) : '—'; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div><!-- /Compliance Table -->
 

@@ -55,18 +55,22 @@ switch ($role) {
 
             <!-- Right: User Profile -->
             <div class="dropdown">
-                <a class="d-flex align-items-center text-decoration-none dropdown-toggle navbar-user-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="user-avatar me-2">
-                        <?php if (!empty($_SESSION['profile'])): ?>
-                            <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #092C4C;">
-                        <?php else: ?>
-                            <i class="bi bi-person-circle fs-4"></i>
-                        <?php endif; ?>
+                <a class="d-flex align-items-center gap-2 text-decoration-none navbar-user-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:#f4f6f9;border:1px solid #e2e6ea;border-radius:8px;padding:5px 12px 5px 12px;transition:background .2s;">
+                    <!-- Avatar -->
+                    <?php if (!empty($_SESSION['profile'])): ?>
+                        <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($_SESSION['profile']); ?>" alt="Profile" class="rounded-circle flex-shrink-0" style="width:36px;height:36px;object-fit:cover;border:2px solid #092C4C;">
+                    <?php else: ?>
+                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:#092C4C;">
+                            <i class="bi bi-person-fill" style="color:#fff;font-size:.95rem;"></i>
+                        </span>
+                    <?php endif; ?>
+                    <!-- Name & role -->
+                    <div class="d-none d-sm-block lh-sm">
+                        <div class="fw-semibold" style="font-size:.82rem;color:#092C4C;"><?php echo $fullname; ?></div>
+                        <div style="font-size:.72rem;color:#6c757d;"><?php echo $roleLabel; ?></div>
                     </div>
-                    <div class="d-none d-sm-block text-end lh-sm">
-                        <span class="fw-semibold small"><?php echo $fullname; ?></span><br>
-                        <span class="user-role"><?php echo $roleLabel; ?></span>
-                    </div>
+                    <!-- Modern chevron -->
+                    <i class="bi bi-chevron-down d-none d-sm-inline" style="font-size:.7rem;color:#6c757d;margin-left:2px;"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 280px;">
                     <!-- Profile Quick View -->

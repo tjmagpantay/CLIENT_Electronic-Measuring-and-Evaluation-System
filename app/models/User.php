@@ -87,14 +87,19 @@ class User
 
     public function updateProfile($userId, $data)
     {
-        $sql = "UPDATE users SET firstname = ?, lastname = ?, middlename = ?, email = ? WHERE user_id = ?";
+        $sets   = ['firstname = ?', 'lastname = ?', 'middlename = ?', 'email = ?'];
         $params = [
             $data['firstname'],
             $data['lastname'],
             $data['middlename'] ?? null,
             $data['email'],
-            $userId
         ];
+        if (isset($data['profile'])) {
+            $sets[]   = 'profile = ?';
+            $params[] = $data['profile'];
+        }
+        $params[] = $userId;
+        $sql = 'UPDATE users SET ' . implode(', ', $sets) . ' WHERE user_id = ?';
         $this->db->query($sql, $params);
     }
 
