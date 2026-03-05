@@ -99,11 +99,11 @@ function announcementUrgency($expiry)
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size:.85rem;">
                     <thead>
-                        <tr style="background:#092C4C;color:#fff;">
-                            <th class="px-4 py-3 fw-semibold border-0">Report</th>
-                            <th class="py-3 fw-semibold border-0">Status</th>
-                            <th class="py-3 fw-semibold border-0">% Completion</th>
-                            <th class="py-3 fw-semibold border-0">Due Date</th>
+                        <tr>
+                            <th class="px-4 py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Report</th>
+                            <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Status</th>
+                            <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">% Completion</th>
+                            <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Due Date</th>
                         </tr>
                     </thead>
                     <tbody>

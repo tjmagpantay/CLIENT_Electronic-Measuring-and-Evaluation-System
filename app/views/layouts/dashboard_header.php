@@ -98,7 +98,7 @@ switch ($role) {
                                 </div>
                                 <div>
                                     <div class="fw-bold"><?php echo $fullname; ?></div>
-                                    <div class="text-muted small"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></div>
+                                    <div style="font-size:.72rem;color:#6c757d;"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></div>
                                 </div>
                             </div>
                             <a href="<?php echo env('APP_URL'); ?>/<?php echo $roleBase; ?>/settings" class="btn btn-sm btn-outline-primary w-100">

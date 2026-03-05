@@ -106,15 +106,15 @@
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" id="submissionsTable" style="font-size:.85rem;">
             <thead>
-                <tr style="background:#092C4C;color:#fff;">
-                    <th class="ps-4 py-3 fw-semibold border-0">#</th>
-                    <th class="py-3 fw-semibold border-0">Report</th>
-                    <th class="py-3 fw-semibold border-0">Period</th>
-                    <th class="py-3 fw-semibold border-0">OPR</th>
-                    <th class="py-3 fw-semibold border-0">Submitted By</th>
-                    <th class="py-3 fw-semibold border-0">Date Submitted</th>
-                    <th class="py-3 fw-semibold border-0">Status</th>
-                    <th class="py-3 fw-semibold border-0">Files</th>
+                <tr>
+                    <th class="ps-4 py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">#</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Report</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Period</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">OPR</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Submitted By</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Date Submitted</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Status</th>
+                    <th class="py-3 fw-semibold border-0" style="background:#092C4C;color:#fff;">Files</th>
                 </tr>
             </thead>
             <tbody>
@@ -125,7 +125,7 @@
                             data-period="<?php echo $s['period_month'] . '-' . $s['period_year']; ?>">
                             <td class="ps-4 py-3 text-muted" style="font-size:.78rem;"><?php echo $i + 1; ?></td>
                             <td class="py-3">
-                               
+
                                 <div class="fw-semibold mt-1" style="color:#092C4C;font-size:.82rem;"><?php echo htmlspecialchars($s['report_title']); ?></div>
                             </td>
                             <td class="py-3" style="color:#495057;font-size:.82rem;white-space:nowrap;">
