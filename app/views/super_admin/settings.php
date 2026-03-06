@@ -21,60 +21,116 @@
 <?php endif; ?>
 
 <div class="row g-4">
-    <!-- Profile Information -->
+    <!-- Left Side: Account Info -->
+    <div class="col-lg-4">
+        <!-- Account Info Card -->
+        <div class="settings-card p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <?php if (!empty($user['profile'])): ?>
+                    <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($user['profile']); ?>" alt="Profile" class="rounded-circle flex-shrink-0" style="width:72px;height:72px;object-fit:cover;border:3px solid #092C4C;">
+                <?php else: ?>
+                    <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:72px;height:72px;background:#EEF2FF;border:3px solid #092C4C;">
+                        <i class="bi bi-person-fill" style="font-size:2rem;color:#092C4C;"></i>
+                    </span>
+                <?php endif; ?>
+                <div>
+                    <h6 class="fw-bold mb-1" style="color:#092C4C;">
+                        <?php echo htmlspecialchars(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '')); ?>
+                    </h6>
+
+                    <span class="badge rounded-small px-2 py-1 fw-normal"
+                        style="background-color:#092C4C; color:#fff; font-size:.70rem;">
+                        Super Admin
+                    </span>
+                </div>
+            </div>
+            <hr class="my-2">
+            <div>
+                <p class="small mb-2 text-muted">
+                    <i class="bi bi-envelope me-2"></i><?php echo htmlspecialchars($user['email'] ?? ''); ?>
+                </p>
+                <p class="small mb-2 text-muted">
+                    <i class="bi bi-person me-2"></i>@<?php echo htmlspecialchars($user['username'] ?? ''); ?>
+                </p>
+                <p class="small mb-0 text-muted">
+                    <i class="bi bi-calendar me-2"></i>Joined <?php echo isset($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : 'N/A'; ?>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Profile Information Form -->
     <div class="col-lg-8">
         <div class="settings-card p-4">
             <h6 class="fw-bold mb-3" style="color: #092C4C;">
-                <i class="bi bi-person me-2"></i>Profile Information
+                Profile Information
             </h6>
-            <form action="<?php echo env('APP_URL'); ?>/superadmin/updateprofile" method="POST">
+            <form action="<?php echo env('APP_URL'); ?>/superadmin/updateprofile" method="POST" enctype="multipart/form-data">
+                <!-- Profile Picture Upload -->
+                <div class="mb-4 pb-3 border-bottom">
+                    <label class="form-label small fw-semibold mb-2">Profile Picture</label>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <?php if (!empty($user['profile'])): ?>
+                                <img src="<?php echo env('APP_URL'); ?>/public/<?php echo htmlspecialchars($user['profile']); ?>" alt="Profile" id="profilePreview" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #092C4C;">
+                            <?php else: ?>
+                                <i class="bi bi-person-circle" id="profilePreview" style="font-size: 5rem; color: #092C4C;"></i>
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <input type="file" class="form-control form-control-sm" name="profile_image" id="profileImageInput" accept="image/*">
+                            <small class="text-muted" style="font-size:.72rem;">JPG, PNG or GIF (max 2MB)</small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">First Name <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-normal text-muted">First Name <span class="text-danger">*</span></label>
                         <input type="text" name="firstname" class="form-control" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Middle Name</label>
+                        <label class="form-label small fw-normal text-muted">Middle Name</label>
                         <input type="text" name="middlename" class="form-control" value="<?php echo htmlspecialchars($user['middlename'] ?? ''); ?>">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Last Name <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-normal text-muted">Last Name <span class="text-danger">*</span></label>
                         <input type="text" name="lastname" class="form-control" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Email Address <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-normal text-muted">Email Address <span class="text-danger">*</span></label>
                         <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Username</label>
+                        <label class="form-label small fw-normal text-muted">Username</label>
                         <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['username'] ?? ''); ?>" disabled>
-                        <small class="text-muted">Username cannot be changed.</small>
+                        <small class="text-muted" style="font-size:.72rem;">Username cannot be changed.</small>
                     </div>
                 </div>
 
                 <hr class="my-4">
 
                 <h6 class="fw-bold mb-3" style="color: #092C4C;">
-                    <i class="bi bi-shield-lock me-2"></i>Change Password
+                    Change Password
                 </h6>
                 <p class="text-muted small mb-3">Leave blank if you don't want to change your password.</p>
 
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Current Password</label>
+                        <label class="form-label small text-muted">Current Password</label>
                         <input type="password" name="current_password" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">New Password</label>
+                        <label class="form-label small text-muted">New Password</label>
                         <input type="password" name="new_password" class="form-control" minlength="6">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Confirm New Password</label>
+                        <label class="form-label small text-muted">Confirm New Password</label>
                         <input type="password" name="confirm_password" class="form-control" minlength="6">
                     </div>
                 </div>
 
-                <div class="mt-4">
+                <div class="mt-4 d-flex justify-content-end">
                     <button type="submit" class="btn text-white px-4" style="background-color: #092C4C;">
                         <i class="bi bi-check-lg me-1"></i> Save Changes
                     </button>
@@ -82,32 +138,52 @@
             </form>
         </div>
     </div>
-
-    <!-- Account Info Sidebar -->
-    <div class="col-lg-4">
-        <div class="settings-card p-4 text-center">
-            <div class="mb-3">
-                <i class="bi bi-person-circle" style="font-size: 4rem; color: #092C4C;"></i>
-            </div>
-            <h6 class="fw-bold"><?php echo htmlspecialchars(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '')); ?></h6>
-            <span class="badge rounded-pill text-white" style="background-color: #092C4C;">Super Admin</span>
-            <hr>
-            <div class="text-start">
-                <p class="small mb-2">
-                    <i class="bi bi-envelope me-2 text-muted"></i>
-                    <?php echo htmlspecialchars($user['email'] ?? ''); ?>
-                </p>
-                <p class="small mb-2">
-                    <i class="bi bi-person me-2 text-muted"></i>
-                    @<?php echo htmlspecialchars($user['username'] ?? ''); ?>
-                </p>
-                <p class="small mb-0">
-                    <i class="bi bi-calendar me-2 text-muted"></i>
-                    Joined <?php echo isset($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : 'N/A'; ?>
-                </p>
-            </div>
-        </div>
-    </div>
 </div>
+
+<script>
+    // Profile image preview
+    document.getElementById('profileImageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+
+                // Update form preview (80px version)
+                const preview = document.getElementById('profilePreview');
+                if (preview.tagName === 'I') {
+                    // Replace icon with image
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.id = 'profilePreview';
+                    img.className = 'rounded-circle';
+                    img.style = 'width: 80px; height: 80px; object-fit: cover; border: 2px solid #092C4C;';
+                    preview.replaceWith(img);
+                } else {
+                    preview.src = imageUrl;
+                }
+
+                // Update Account Info Card preview (72px version)
+                const accountCard = document.querySelector('.settings-card .mb-3');
+                if (accountCard) {
+                    const existingImg = accountCard.querySelector('img');
+                    const existingSpan = accountCard.querySelector('span.rounded-circle');
+
+                    if (existingImg) {
+                        existingImg.src = imageUrl;
+                    } else if (existingSpan) {
+                        const img = document.createElement('img');
+                        img.src = imageUrl;
+                        img.className = 'rounded-circle flex-shrink-0';
+                        img.alt = 'Profile';
+                        img.style = 'width: 72px; height: 72px; object-fit: cover; border: 3px solid #092C4C;';
+                        existingSpan.replaceWith(img);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 
 <?php require_once __DIR__ . '/../layouts/dashboard_footer.php'; ?>

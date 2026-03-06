@@ -16,8 +16,20 @@ $complianceRate = $total > 0 ? round(($onTimeCount / $total) * 100) : 0;
 $lateRate = $total > 0 ? round(($lateCount / $total) * 100) : 0;
 $nonCompliantRate = $total > 0 ? round(($pendingCount / $total) * 100) : 0;
 
-$months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
-           7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'];
+$months = [
+    1 => 'January',
+    2 => 'February',
+    3 => 'March',
+    4 => 'April',
+    5 => 'May',
+    6 => 'June',
+    7 => 'July',
+    8 => 'August',
+    9 => 'September',
+    10 => 'October',
+    11 => 'November',
+    12 => 'December'
+];
 ?>
 
 <!-- Row 1: Page Header + Filters -->
@@ -26,7 +38,7 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
         <h4 class="fw-bold mb-1" style="color: #092C4C;">Dashboard</h4>
         <p class="text-muted mb-0 small">Here is your report from <?php echo $dateRange; ?>.</p>
     </div>
-    <div class="d-flex align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2" style="padding:8px 12px;background:#f8f9fa;border-radius:10px;">
         <select class="form-select form-select-sm" style="width: auto; min-width: 130px; border-color: #dee2e6;">
             <option value="">All Clusters</option>
             <option value="1">Cluster 1</option>
@@ -45,12 +57,6 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
                 <option value="<?php echo $m; ?>" <?php echo ($m == (int)date('n')) ? 'selected' : ''; ?>><?php echo $months[$m]; ?></option>
             <?php endfor; ?>
         </select>
-        <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-secondary active">Q1</button>
-            <button type="button" class="btn btn-outline-secondary">Q2</button>
-            <button type="button" class="btn btn-outline-secondary">Q3</button>
-            <button type="button" class="btn btn-outline-secondary">Q4</button>
-        </div>
         <button class="btn btn-sm text-white" style="background-color: #092C4C;">
             <i class="bi bi-funnel me-1"></i> Apply Filter
         </button>
@@ -59,83 +65,103 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
 
 <!-- Row 2: Compliance Overview + Compliance Rate Chart -->
 <div class="row g-3 mb-4">
-    <!-- Compliance Overview -->
+    <!-- Compliance Overview: gradient cards -->
     <div class="col-lg-8">
         <div class="card dash-card p-4 h-100">
             <div class="mb-3">
-                <h6 class="fw-bold mb-1" style="color: #092C4C;">Compliance Overview</h6>
+                <h6 class="fw-bold mb-1" style="color:#092C4C;">Compliance Overview</h6>
                 <p class="text-muted small mb-0">Summary of office submission compliance for the current period.</p>
             </div>
             <div class="row g-3">
                 <!-- Non Compliant -->
                 <div class="col-md-4">
-                    <div class="rounded-3 p-3 h-100" style="background-color: #FFE2E2;">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: rgba(235,80,80,0.2);">
-                                <i class="bi bi-x-circle" style="color: #EB5050;"></i>
+                    <div class="card h-100 border-0 rounded-3 p-4"
+                        style="background:linear-gradient(135deg,#E43535 0%,#b71c1c 100%);">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="fw-semibold text-uppercase" style="color:rgba(255,255,255,.85);font-size:.72rem;letter-spacing:.6px;">Non Compliant</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                style="width:36px;height:36px;background:rgba(255,255,255,.2);">
+                                <i class="bi bi-person-x" style="color:#fff;font-size:.95rem;"></i>
                             </div>
-                            <span class="small fw-semibold" style="color: #92400E;">Non Compliant</span>
                         </div>
-                        <h3 class="fw-bold mb-1" style="color: #092C4C;"><?php echo $pendingCount; ?></h3>
-                        <p class="small mb-0" style="color: #92400E;">
-                            <?php echo $nonCompliantRate; ?>% of total offices
-                        </p>
+                        <h2 class="fw-bold mb-1" style="color:#fff;"><?php echo $pendingCount; ?></h2>
+                        <p class="mb-0" style="color:rgba(255,255,255,.75);font-size:.78rem;"><?php echo $nonCompliantRate; ?>% of total submissions</p>
                     </div>
                 </div>
-                <!-- Late Submissions -->
+                <!-- Late -->
                 <div class="col-md-4">
-                    <div class="rounded-3 p-3 h-100" style="background-color: #F5E7CE;">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: rgba(255,174,76,0.3);">
-                                <i class="bi bi-clock-history" style="color: #D97706;"></i>
+                    <div class="card h-100 border-0 rounded-3 p-4"
+                        style="background:linear-gradient(135deg,#FEC53D 0%,#e6a800 100%);">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="fw-semibold text-uppercase" style="color:rgba(0,0,0,.6);font-size:.72rem;letter-spacing:.6px;">Late Submissions</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                style="width:36px;height:36px;background:rgba(0,0,0,.1);">
+                                <i class="bi bi-clock-history" style="color:rgba(0,0,0,.65);font-size:.95rem;"></i>
                             </div>
-                            <span class="small fw-semibold" style="color: #92400E;">Late Submissions</span>
                         </div>
-                        <h3 class="fw-bold mb-1" style="color: #092C4C;"><?php echo $lateCount; ?></h3>
-                        <p class="small mb-0" style="color: #92400E;">
-                            <?php echo $lateRate; ?>% of total submissions
-                        </p>
+                        <h2 class="fw-bold mb-1" style="color:#092C4C;"><?php echo $lateCount; ?></h2>
+                        <p class="mb-0" style="color:rgba(0,0,0,.55);font-size:.78rem;"><?php echo $lateRate; ?>% of total submissions</p>
                     </div>
                 </div>
-                <!-- Submitted -->
+                <!-- On Time -->
                 <div class="col-md-4">
-                    <div class="rounded-3 p-3 h-100" style="background-color: #E3EBF3;">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: rgba(9,44,76,0.15);">
-                                <i class="bi bi-check-circle" style="color: #092C4C;"></i>
+                    <div class="card h-100 border-0 rounded-3 p-4"
+                        style="background:linear-gradient(135deg,#092C4C 0%,#1a4a7a 100%);">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="fw-semibold text-uppercase" style="color:rgba(255,255,255,.85);font-size:.72rem;letter-spacing:.6px;">Submitted On Time</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                style="width:36px;height:36px;background:rgba(255,255,255,.2);">
+                                <i class="bi bi-graph-up-arrow" style="color:#fff;font-size:.95rem;"></i>
                             </div>
-                            <span class="small fw-semibold" style="color: #1E3A5F;">Submitted</span>
                         </div>
-                        <h3 class="fw-bold mb-1" style="color: #092C4C;"><?php echo $onTimeCount; ?></h3>
-                        <p class="small mb-0" style="color: #1E3A5F;">
-                            <?php echo $complianceRate; ?>% on time
-                        </p>
+                        <h2 class="fw-bold mb-1" style="color:#fff;"><?php echo $onTimeCount; ?></h2>
+                        <p class="mb-0" style="color:rgba(255,255,255,.75);font-size:.78rem;"><?php echo $complianceRate; ?>% on time</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Compliance Rate Pie Chart -->
+    <!-- Compliance Rate Donut — chart left, legend right -->
     <div class="col-lg-4">
         <div class="card dash-card p-4 h-100">
-            <h6 class="fw-bold mb-1" style="color: #092C4C;">Compliance Rate</h6>
+            <h6 class="fw-bold mb-1" style="color:#092C4C;">Compliance Rate</h6>
             <p class="text-muted small mb-3">Overall submission status breakdown.</p>
-            <div class="d-flex justify-content-center" style="position: relative; height: 200px;">
-                <canvas id="complianceChart"></canvas>
-            </div>
-            <div class="d-flex justify-content-center gap-3 mt-3">
-                <div class="d-flex align-items-center">
-                    <span class="rounded-circle me-1" style="width: 10px; height: 10px; display: inline-block; background-color: #092C4C;"></span>
-                    <small class="text-muted">On Time</small>
+            <div class="d-flex align-items-center gap-3">
+                <div style="position:relative;width:130px;height:130px;flex-shrink:0;">
+                    <canvas id="complianceChart"></canvas>
                 </div>
-                <div class="d-flex align-items-center">
-                    <span class="rounded-circle me-1" style="width: 10px; height: 10px; display: inline-block; background-color: #FFAE4C;"></span>
-                    <small class="text-muted">Late</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="rounded-circle me-1" style="width: 10px; height: 10px; display: inline-block; background-color: #EB5050;"></span>
-                    <small class="text-muted">Non Compliant</small>
+                <div class="d-flex flex-column gap-2" style="font-size:.8rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle flex-shrink-0" style="width:10px;height:10px;background:#092C4C;display:inline-block;"></span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="fw-semibold" style="color:#092C4C;"><?php echo $onTimeCount; ?></span>
+                            <span class="text-muted" style="font-size:.72rem;">On Time</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle flex-shrink-0" style="width:10px;height:10px;background:#FFAE4C;display:inline-block;"></span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="fw-semibold" style="color:#092C4C;"><?php echo $lateCount; ?></span>
+                            <span class="text-muted" style="font-size:.72rem;">Late</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle flex-shrink-0" style="width:10px;height:10px;background:#EB5050;display:inline-block;"></span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="fw-semibold" style="color:#092C4C;"><?php echo $pendingCount; ?></span>
+                            <span class="text-muted" style="font-size:.72rem;">Non Compliant</span>
+                        </div>
+                    </div>
+                    <hr class="my-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="lh-sm">
+                            <div class="fw-bold" style="color:#092C4C;font-size:.95rem;"><?php echo $complianceRate; ?>%</div>
+                            <div class="text-muted" style="font-size:.72rem;">Compliance</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,14 +176,14 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h6 class="fw-bold mb-1" style="color: #092C4C;">Submission Trend</h6>
-                    <p class="text-muted small mb-0">Monthly submission activity overview.</p>
+                    <p class="text-muted small mb-0" id="trendSubtitle">Monthly submission activity for <?php echo date('Y'); ?>.</p>
                 </div>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button type="button" class="btn btn-outline-secondary active">Month</button>
-                    <button type="button" class="btn btn-outline-secondary">Year</button>
+                <div class="btn-group btn-group-sm" role="group" id="trendToggle">
+                    <button type="button" class="btn btn-outline-secondary active" data-mode="monthly">Monthly</button>
+                    <button type="button" class="btn btn-outline-secondary" data-mode="yearly">Yearly</button>
                 </div>
             </div>
-            <div style="position: relative; height: 260px;">
+            <div style="position:relative;height:260px;">
                 <canvas id="submissionTrendChart"></canvas>
             </div>
         </div>
@@ -196,11 +222,11 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
                                     <td>
                                         <?php
                                         $statusBadge = match ($rs['submission_status']) {
-                                            'ON_TIME' => '<span class="badge bg-success bg-opacity-10 text-success rounded-pill">On Time</span>',
-                                            'LATE' => '<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Late</span>',
-                                            'ERROR' => '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Error</span>',
-                                            'NO_SUBMISSION' => '<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Pending</span>',
-                                            default => '<span class="badge bg-secondary rounded-pill">N/A</span>'
+                                            'ON_TIME' => '<span class="badge bg-success bg-opacity-10 text-success rounded-small">On Time</span>',
+                                            'LATE' => '<span class="badge bg-warning bg-opacity-10 text-warning rounded-small">Late</span>',
+                                            'ERROR' => '<span class="badge bg-danger bg-opacity-10 text-danger rounded-small">Error</span>',
+                                            'NO_SUBMISSION' => '<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-small">Pending</span>',
+                                            default => '<span class="badge bg-secondary rounded-small">N/A</span>'
                                         };
                                         echo $statusBadge;
                                         ?>
@@ -253,7 +279,7 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
                                 ?>
                                 <tr>
                                     <td class="ps-4">
-                                        <span class="badge rounded-pill" style="background-color: #092C4C; color: #fff;">
+                                        <span class="badge rounded-small" style="background-color: #092C4C; color: #fff;">
                                             <?php echo htmlspecialchars($rd['report_code']); ?>
                                         </span>
                                     </td>
@@ -295,156 +321,133 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ── Compliance Rate Pie Chart ──
-    var complianceCtx = document.getElementById('complianceChart').getContext('2d');
-    var onTime = <?php echo $onTimeCount; ?>;
-    var late = <?php echo $lateCount; ?>;
-    var nonCompliant = <?php echo $pendingCount; ?>;
-    var hasData = (onTime + late + nonCompliant) > 0;
+    document.addEventListener('DOMContentLoaded', function() {
+        // ── Compliance Rate Donut ──
+        var complianceCtx = document.getElementById('complianceChart').getContext('2d');
+        var onTime = <?php echo $onTimeCount; ?>;
+        var late = <?php echo $lateCount; ?>;
+        var nonCompliant = <?php echo $pendingCount; ?>;
+        var hasData = (onTime + late + nonCompliant) > 0;
 
-    new Chart(complianceCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['On Time', 'Late', 'Non Compliant'],
-            datasets: [{
-                data: hasData ? [onTime, late, nonCompliant] : [1],
-                backgroundColor: hasData ? ['#092C4C', '#FFAE4C', '#EB5050'] : ['#e9ecef'],
-                borderWidth: 0,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    enabled: hasData,
-                    callbacks: {
-                        label: function(context) {
-                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                            var pct = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
-                            return context.label + ': ' + context.parsed + ' (' + pct + '%)';
+        new Chart(complianceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['On Time', 'Late', 'Non Compliant'],
+                datasets: [{
+                    data: hasData ? [onTime, late, nonCompliant] : [1],
+                    backgroundColor: hasData ? ['#092C4C', '#FFAE4C', '#EB5050'] : ['#e9ecef'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: hasData
+                    }
+                }
+            }
+        });
+
+        // ── Submission Trend Line Chart ──
+        var trendCtx = document.getElementById('submissionTrendChart').getContext('2d');
+        var monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                        label: 'On Time',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#092C4C',
+                        backgroundColor: 'rgba(9,44,76,0.08)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#092C4C'
+                    },
+                    {
+                        label: 'Late',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#FFAE4C',
+                        backgroundColor: 'rgba(255,174,76,0.08)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#FFAE4C'
+                    },
+                    {
+                        label: 'Non Compliant',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#EB5050',
+                        backgroundColor: 'rgba(235,80,80,0.08)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#EB5050'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 11,
+                                family: 'Inter'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11,
+                                family: 'Inter'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: {
+                                size: 11,
+                                family: 'Inter'
+                            }
                         }
                     }
                 }
             }
-        },
-        plugins: hasData ? [{
-            id: 'centerText',
-            beforeDraw: function(chart) {
-                var ctx = chart.ctx;
-                var width = chart.width;
-                var height = chart.height;
-                ctx.restore();
-                ctx.font = 'bold 24px Inter, sans-serif';
-                ctx.fillStyle = '#092C4C';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('<?php echo $complianceRate; ?>%', width / 2, height / 2 - 8);
-                ctx.font = '12px Inter, sans-serif';
-                ctx.fillStyle = '#6c757d';
-                ctx.fillText('Compliance', width / 2, height / 2 + 14);
-                ctx.save();
-            }
-        }] : [{
-            id: 'emptyText',
-            beforeDraw: function(chart) {
-                var ctx = chart.ctx;
-                ctx.restore();
-                ctx.font = '13px Inter, sans-serif';
-                ctx.fillStyle = '#6c757d';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('No data yet', chart.width / 2, chart.height / 2);
-                ctx.save();
-            }
-        }]
+        });
     });
-
-    // ── Submission Trend Line Chart ──
-    var trendCtx = document.getElementById('submissionTrendChart').getContext('2d');
-    var monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: monthLabels,
-            datasets: [
-                {
-                    label: 'On Time',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#092C4C',
-                    backgroundColor: 'rgba(9,44,76,0.08)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#092C4C'
-                },
-                {
-                    label: 'Late',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#FFAE4C',
-                    backgroundColor: 'rgba(255,174,76,0.08)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#FFAE4C'
-                },
-                {
-                    label: 'Non Compliant',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#EB5050',
-                    backgroundColor: 'rgba(235,80,80,0.08)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#EB5050'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        font: { size: 11, family: 'Inter' }
-                    },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    ticks: {
-                        font: { size: 11, family: 'Inter' }
-                    },
-                    grid: { display: false }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 20,
-                        font: { size: 11, family: 'Inter' }
-                    }
-                }
-            }
-        }
-    });
-});
 </script>
 
 <?php require_once __DIR__ . '/../layouts/dashboard_footer.php'; ?>

@@ -106,18 +106,10 @@
                                 <?php endif; ?>
                             </td>
                             <td class="text-center">
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Action
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo env('APP_URL'); ?>/superadmin/editoffice/<?php echo $office['office_id']; ?>">
-                                                <i class="bi bi-pencil me-2 text-primary"></i>Edit
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                <a href="<?php echo env('APP_URL'); ?>/superadmin/editoffice/<?php echo $office['office_id']; ?>"
+                                    class="btn btn-sm btn-outline-secondary">
+                                    Edit
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

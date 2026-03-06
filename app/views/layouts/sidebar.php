@@ -32,7 +32,7 @@ function isActive($page, $current)
     </li>
     <li class="sidebar-item <?php echo isActive('offices', $currentPage); ?>">
         <a href="<?php echo env('APP_URL'); ?>/superadmin/offices" class="sidebar-link">
-            <i class="bi bi-building"></i>
+            <i class="bi bi-people"></i>
             <span>Offices</span>
         </a>
     </li>
@@ -56,7 +56,7 @@ function isActive($page, $current)
     </li>
     <li class="sidebar-item <?php echo isActive('users', $currentPage); ?>">
         <a href="<?php echo env('APP_URL'); ?>/superadmin/users" class="sidebar-link">
-            <i class="bi bi-people"></i>
+            <i class="bi bi-person-lines-fill"></i>
             <span>Users</span>
         </a>
     </li>
@@ -88,7 +88,7 @@ function isActive($page, $current)
     </li>
     <li class="sidebar-item <?php echo isActive('offices', $currentPage); ?>">
         <a href="<?php echo env('APP_URL'); ?>/admin/offices" class="sidebar-link">
-            <i class="bi bi-building"></i>
+            <i class="bi bi-people"></i>
             <span>Offices</span>
         </a>
     </li>

@@ -1,12 +1,12 @@
 <?php require_once __DIR__ . '/../layouts/dashboard_header.php'; ?>
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#092C4C;">Users</h4>
-        <p class="text-muted mb-0 small">Manage system users, assign roles, and control access.</p>
+        <h4>Users</h4>
+        <p>Manage system users, assign roles, and control access.</p>
     </div>
-    <button class="btn text-white" style="background-color:#092C4C;" data-bs-toggle="modal" data-bs-target="#addUserModal">
+    <button class="btn text-white" style="background-color: #092C4C;" data-bs-toggle="modal" data-bs-target="#addUserModal">
         <i class="bi bi-plus-lg me-1"></i> Add User
     </button>
 </div>
@@ -21,189 +21,97 @@
 <?php endif; ?>
 <?php if (!empty($_SESSION['flash_error'])): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i><?php echo htmlspecialchars($_SESSION['flash_error']);
+        <i class="bi bi-exclamation-circle me-2"></i><?php echo htmlspecialchars($_SESSION['flash_error']);
                                                         unset($_SESSION['flash_error']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
 
 <!-- Users Table -->
-<div class="card dash-card" style="border-radius: 8px; overflow: visible;">
-    <!-- Search bar inside card -->
-    <div class="p-3 d-flex align-items-center flex-wrap gap-2" style="background:#f8f9fa;border-bottom:1px solid #e9ecef;">
-        <!-- Search -->
-        <div class="input-group input-group-sm" style="max-width:220px;">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" id="userSearch" class="form-control border-start-0 ps-0" placeholder="Search user...">
-        </div>
-        <!-- Role Filter -->
-        <select id="filterRole" class="form-select form-select-sm" style="width:auto;min-width:140px;">
-            <option value="">All Roles</option>
-            <option value="SUPER_ADMIN">Super Admin</option>
-            <option value="ADMIN">Admin</option>
-            <option value="LGU_OFFICER">LGU Officer</option>
-        </select>
-        <!-- Status Filter -->
-        <select id="filterStatus" class="form-select form-select-sm" style="width:auto;min-width:120px;">
-            <option value="">All Status</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-        </select>
-        <!-- Reset -->
-        <button id="resetFilters" class="btn btn-sm btn-outline-secondary">Reset</button>
-        <!-- Results count -->
-        <span id="userCount" class="ms-auto small text-muted"></span>
-    </div>
-
-    <!-- Table -->
-    <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
-        <table class="table table-hover align-middle mb-0" id="usersTable">
-            <thead style="background-color:#f8f9fa;">
-                <tr>
-                    <th class="ps-4" style="background:#f8f9fa;">Name</th>
-                    <th style="background:#f8f9fa;">Username</th>
-                    <th style="background:#f8f9fa;">Email</th>
-                    <th style="background:#f8f9fa;">Role</th>
-                    <th style="background:#f8f9fa;">Office</th>
-                    <th style="background:#f8f9fa;">Status</th>
-                    <th class="text-center" style="background:#f8f9fa;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="usersBody">
-                <?php if (empty($users)): ?>
+<div class="card dash-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background-color: #f8f9fa;">
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No users found.</td>
+                        <th class="ps-4">Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Office</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($users as $u): ?>
-                        <tr
-                            data-name="<?php echo strtolower(htmlspecialchars($u['firstname'] . ' ' . $u['lastname'])); ?>"
-                            data-username="<?php echo strtolower(htmlspecialchars($u['username'])); ?>"
-                            data-email="<?php echo strtolower(htmlspecialchars($u['email'])); ?>"
-                            data-role="<?php echo htmlspecialchars($u['role']); ?>"
-                            data-status="<?php echo $u['is_active'] ? '1' : '0'; ?>">
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: #092C4C; color: #fff; font-size: 0.8rem; font-weight: 600;">
-                                        <?php echo strtoupper(substr($u['firstname'], 0, 1) . substr($u['lastname'], 0, 1)); ?>
-                                    </div>
-                                    <div>
-                                        <span class="fw-semibold small"><?php echo htmlspecialchars($u['firstname'] . ' ' . $u['lastname']); ?></span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="small"><?php echo htmlspecialchars($u['username']); ?></span></td>
-                            <td><span class="small"><?php echo htmlspecialchars($u['email']); ?></span></td>
-                            <td>
-                                <?php
-                                $roleBadge = match ($u['role']) {
-                                    'SUPER_ADMIN' => '<span class="badge rounded-small" style="background-color:#092C4C;color:#fff;">Super Admin</span>',
-                                    'ADMIN' => '<span class="badge rounded-small" style="background-color:#F3AF0E;color:#fff;">Admin</span>',
-                                    'LGU_OFFICER' => '<span class="badge rounded-small bg-success">LGU Officer</span>',
-                                    default => '<span class="badge bg-secondary">Unknown</span>'
-                                };
-                                echo $roleBadge;
-                                ?>
-                            </td>
-                            <td><span class="small text-muted"><?php echo htmlspecialchars($u['office_name'] ?? '—'); ?></span></td>
-                            <td>
-                                <?php if ($u['is_active']): ?>
-                                    <span class="badge rounded-small bg-success bg-opacity-10 text-success">Active</span>
-                                <?php else: ?>
-                                    <span class="badge rounded-small bg-danger bg-opacity-10 text-danger">Inactive</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center">
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item btn-edit-user" href="#"
-                                                data-id="<?php echo $u['user_id']; ?>"
-                                                data-firstname="<?php echo htmlspecialchars($u['firstname']); ?>"
-                                                data-lastname="<?php echo htmlspecialchars($u['lastname']); ?>"
-                                                data-middlename="<?php echo htmlspecialchars($u['middlename'] ?? ''); ?>"
-                                                data-username="<?php echo htmlspecialchars($u['username']); ?>"
-                                                data-email="<?php echo htmlspecialchars($u['email']); ?>"
-                                                data-role="<?php echo $u['role']; ?>"
-                                                data-office="<?php echo $u['office_id'] ?? ''; ?>"
-                                                data-active="<?php echo $u['is_active']; ?>"
-                                                onclick="return false;">
-                                                <i class="bi bi-pencil me-2"></i>Edit
-                                            </a>
-                                        </li>
-                                        <?php if ($u['user_id'] != $_SESSION['user_id']): ?>
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item <?php echo $u['is_active'] ? 'text-warning' : 'text-success'; ?>"
-                                                    href="<?php echo env('APP_URL'); ?>/superadmin/toggleuser/<?php echo $u['user_id']; ?>"
-                                                    onclick="return confirm('Are you sure you want to <?php echo $u['is_active'] ? 'deactivate' : 'activate'; ?> this user?');">
-                                                    <i class="bi bi-<?php echo $u['is_active'] ? 'person-dash' : 'person-check'; ?> me-2"></i><?php echo $u['is_active'] ? 'Deactivate' : 'Activate'; ?>
-                                                </a>
-                                            </li>
-                                        <?php endif; ?>
-                                    </ul>
-                                </div>
-                            </td>
+                </thead>
+                <tbody>
+                    <?php if (empty($users)): ?>
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No users found.</td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    <?php else: ?>
+                        <?php foreach ($users as $u): ?>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: #092C4C; color: #fff; font-size: 0.8rem; font-weight: 600;">
+                                            <?php echo strtoupper(substr($u['firstname'], 0, 1) . substr($u['lastname'], 0, 1)); ?>
+                                        </div>
+                                        <div>
+                                            <span class="fw-semibold small"><?php echo htmlspecialchars($u['firstname'] . ' ' . $u['lastname']); ?></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="small"><?php echo htmlspecialchars($u['username']); ?></span></td>
+                                <td><span class="small"><?php echo htmlspecialchars($u['email']); ?></span></td>
+                                <td>
+                                    <?php
+                                    $roleBadge = match ($u['role']) {
+                                        'SUPER_ADMIN' => '<span class="badge rounded-pill text-white" style="background-color: #092C4C;">Super Admin</span>',
+                                        'ADMIN' => '<span class="badge rounded-pill" style="background-color: #F3AF0E; color: #092C4C;">Admin</span>',
+                                        'LGU_OFFICER' => '<span class="badge rounded-pill bg-success">LGU Officer</span>',
+                                        default => '<span class="badge bg-secondary">Unknown</span>'
+                                    };
+                                    echo $roleBadge;
+                                    ?>
+                                </td>
+                                <td><span class="small text-muted"><?php echo htmlspecialchars($u['office_name'] ?? '—'); ?></span></td>
+                                <td>
+                                    <?php if ($u['is_active']): ?>
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success">Active</span>
+                                    <?php else: ?>
+                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger">Inactive</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary me-1 btn-edit-user" title="Edit"
+                                        data-id="<?php echo $u['user_id']; ?>"
+                                        data-firstname="<?php echo htmlspecialchars($u['firstname']); ?>"
+                                        data-lastname="<?php echo htmlspecialchars($u['lastname']); ?>"
+                                        data-middlename="<?php echo htmlspecialchars($u['middlename'] ?? ''); ?>"
+                                        data-username="<?php echo htmlspecialchars($u['username']); ?>"
+                                        data-email="<?php echo htmlspecialchars($u['email']); ?>"
+                                        data-role="<?php echo $u['role']; ?>"
+                                        data-office="<?php echo $u['office_id'] ?? ''; ?>"
+                                        data-active="<?php echo $u['is_active']; ?>">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <?php if ($u['user_id'] != $_SESSION['user_id']): ?>
+                                        <a href="<?php echo env('APP_URL'); ?>/superadmin/toggleuser/<?php echo $u['user_id']; ?>"
+                                            class="btn btn-sm <?php echo $u['is_active'] ? 'btn-outline-warning' : 'btn-outline-success'; ?>"
+                                            title="<?php echo $u['is_active'] ? 'Deactivate' : 'Activate'; ?>"
+                                            onclick="return confirm('Are you sure you want to <?php echo $u['is_active'] ? 'deactivate' : 'activate'; ?> this user?');">
+                                            <i class="bi bi-<?php echo $u['is_active'] ? 'person-dash' : 'person-check'; ?>"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <!-- No results row (hidden initially) -->
-    <div id="noResults" class="text-center text-muted py-4" style="display:none!important;">No users match your filters.</div>
 </div>
-
-<script>
-    (function() {
-        var searchInput = document.getElementById('userSearch');
-        var filterRole = document.getElementById('filterRole');
-        var filterStatus = document.getElementById('filterStatus');
-        var resetBtn = document.getElementById('resetFilters');
-        var tbody = document.getElementById('usersBody');
-        var countEl = document.getElementById('userCount');
-        var noResults = document.getElementById('noResults');
-
-        function applyFilters() {
-            var search = searchInput.value.toLowerCase().trim();
-            var role = filterRole.value;
-            var status = filterStatus.value;
-            var rows = tbody.querySelectorAll('tr[data-name]');
-            var visible = 0;
-
-            rows.forEach(function(row) {
-                var matchSearch = !search || row.dataset.name.includes(search) || row.dataset.username.includes(search) || row.dataset.email.includes(search);
-                var matchRole = !role || row.dataset.role === role;
-                var matchStatus = !status || row.dataset.status === status;
-                var show = matchSearch && matchRole && matchStatus;
-                row.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-
-            countEl.textContent = visible + ' user' + (visible !== 1 ? 's' : '') + ' found';
-            noResults.style.setProperty('display', visible === 0 ? 'block' : 'none', 'important');
-        }
-
-        searchInput.addEventListener('input', applyFilters);
-        filterRole.addEventListener('change', applyFilters);
-        filterStatus.addEventListener('change', applyFilters);
-
-        resetBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            filterRole.value = '';
-            filterStatus.value = '';
-            applyFilters();
-        });
-
-        applyFilters();
-    })();
-</script>
 
 <!-- ==================== ADD USER MODAL ==================== -->
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">

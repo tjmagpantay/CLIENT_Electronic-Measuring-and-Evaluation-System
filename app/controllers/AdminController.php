@@ -319,12 +319,55 @@ class AdminController extends Controller
             return;
         }
 
-        $this->userModel->updateProfile($userId, [
+        // Handle profile image upload
+        $profilePath = null;
+        if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['profile_image'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+
+            if (!in_array($ext, $allowed)) {
+                $user = $this->userModel->findById($userId);
+                $this->view('admin/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'success' => '', 'error' => 'Invalid image type. Allowed: JPG, PNG, GIF.']);
+                return;
+            }
+
+            if ($file['size'] > 2 * 1024 * 1024) {
+                $user = $this->userModel->findById($userId);
+                $this->view('admin/settings', ['title' => 'Settings - LGMES', 'user' => $user, 'success' => '', 'error' => 'Image size must not exceed 2MB.']);
+                return;
+            }
+
+            $uploadsDir = __DIR__ . '/../../public/uploads/profiles/';
+            if (!is_dir($uploadsDir)) {
+                mkdir($uploadsDir, 0755, true);
+            }
+
+            // Delete old profile image if exists
+            $oldUser = $this->userModel->findById($userId);
+            if (!empty($oldUser['profile']) && file_exists(__DIR__ . '/../../public/' . $oldUser['profile'])) {
+                unlink(__DIR__ . '/../../public/' . $oldUser['profile']);
+            }
+
+            $filename = 'profile_' . $userId . '_' . time() . '.' . $ext;
+            if (move_uploaded_file($file['tmp_name'], $uploadsDir . $filename)) {
+                $profilePath = 'uploads/profiles/' . $filename;
+            }
+        }
+
+        $updateData = [
             'firstname' => $firstname,
             'lastname' => $lastname,
             'middlename' => $middlename,
             'email' => $email
-        ]);
+        ];
+
+        if ($profilePath) {
+            $updateData['profile'] = $profilePath;
+            $_SESSION['profile'] = $profilePath;
+        }
+
+        $this->userModel->updateProfile($userId, $updateData);
 
         $_SESSION['firstname'] = $firstname;
         $_SESSION['lastname'] = $lastname;

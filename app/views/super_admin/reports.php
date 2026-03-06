@@ -1,98 +1,194 @@
 <?php require_once __DIR__ . '/../layouts/dashboard_header.php'; ?>
 
-<div class="page-header">
-    <h4>Report Types Management</h4>
-    <p>Manage all report types that LGUs must submit.</p>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="color:#092C4C;">Report Types</h4>
+        <p class="text-muted mb-0 small">Manage all report types that LGUs must submit.</p>
+    </div>
+    <button class="btn text-white" style="background-color:#092C4C;" data-bs-toggle="modal" data-bs-target="#addReportTypeModal">
+        <i class="bi bi-plus-lg me-1"></i> Add Report Type
+    </button>
 </div>
 
 <?php if (isset($_SESSION['flash_success'])): ?>
-    <div class="alert alert-success alert-dismissible fade show">
-        <?php echo htmlspecialchars($_SESSION['flash_success']);
-        unset($_SESSION['flash_success']); ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i><?php echo htmlspecialchars($_SESSION['flash_success']);
+                                                unset($_SESSION['flash_success']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['flash_error'])): ?>
-    <div class="alert alert-danger alert-dismissible fade show">
-        <?php echo htmlspecialchars($_SESSION['flash_error']);
-        unset($_SESSION['flash_error']); ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><?php echo htmlspecialchars($_SESSION['flash_error']);
+                                                        unset($_SESSION['flash_error']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
 
-<div class="card dash-card">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">All Report Types</h6>
-            <button class="btn btn-sm text-white" style="background-color: #F3AF0E;" data-bs-toggle="modal" data-bs-target="#addReportTypeModal">
-                <i class="bi bi-plus-circle"></i> Add Report Type
-            </button>
+<div class="card dash-card" style="border-radius: 8px; overflow: visible;">
+    <!-- Search bar inside card -->
+    <div class="p-3 d-flex align-items-center flex-wrap gap-2" style="background:#f8f9fa;border-bottom:1px solid #e9ecef;">
+        <!-- Search -->
+        <div class="input-group input-group-sm" style="max-width:250px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="reportSearch" class="form-control border-start-0 ps-0" placeholder="Search report...">
         </div>
+        <!-- Submission Type Filter -->
+        <select id="filterSubmissionType" class="form-select form-select-sm" style="width:auto;min-width:150px;">
+            <option value="">All Types</option>
+            <option value="FILE_UPLOAD">File Upload</option>
+            <option value="GOOGLE_SHEET">Google Sheet</option>
+            <option value="BOTH">Both</option>
+        </select>
+        <!-- Status Filter -->
+        <select id="filterStatus" class="form-select form-select-sm" style="width:auto;min-width:120px;">
+            <option value="">All Status</option>
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+        </select>
+        <!-- Reset -->
+        <button id="resetFilters" class="btn btn-sm btn-outline-secondary">Reset</button>
+        <!-- Results count -->
+        <span id="reportCount" class="ms-auto small text-muted"></span>
+    </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background-color: #092C4C; color: #fff;">
-                    <tr>
-                        <th>#</th>
-                        <th>Report Code</th>
-                        <th>Report Title</th>
-                        <th>Submission Type</th>
-                        <th>OPR</th>
-                        <th>Deadline Day</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($reportTypes)): ?>
-                        <?php foreach ($reportTypes as $i => $rt): ?>
-                            <tr>
-                                <td><?php echo $i + 1; ?></td>
-                                <td><span class="badge" style="background-color: #F3AF0E; color: #092C4C;"><?php echo htmlspecialchars($rt['report_code']); ?></span></td>
-                                <td class="fw-semibold"><?php echo htmlspecialchars($rt['report_title']); ?></td>
-                                <td>
-                                    <?php
-                                    $type = $rt['submission_type'] ?? 'FILE_UPLOAD';
-                                    if ($type === 'GOOGLE_SHEET'): ?>
-                                        <span class="badge bg-info"><i class="bi bi-file-spreadsheet"></i> Google Sheet</span>
-                                    <?php elseif ($type === 'BOTH'): ?>
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-files"></i> Sheet + Files</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-primary"><i class="bi bi-cloud-upload"></i> File Upload</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><small><?php echo htmlspecialchars($rt['opr'] ?? 'Not set'); ?></small></td>
-                                <td>Day <?php echo htmlspecialchars($rt['deadline_day'] ?? 15); ?></td>
-                                <td>
-                                    <?php if ($rt['is_active']): ?>
-                                        <span class="badge bg-success">Active</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">Inactive</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick='editReportType(<?php echo json_encode($rt); ?>)'>
-                                        <i class="bi bi-pencil"></i>
+    <!-- Table -->
+    <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
+        <table class="table table-hover align-middle mb-0" id="reportsTable">
+            <thead style="background-color:#f8f9fa;">
+                <tr>
+                    <th class="ps-4" style="background:#f8f9fa;">#</th>
+                    <th style="background:#f8f9fa;">Report Code</th>
+                    <th style="background:#f8f9fa;">Report Title</th>
+                    <th style="background:#f8f9fa;">Submission Type</th>
+                    <th style="background:#f8f9fa;">OPR</th>
+                    <th style="background:#f8f9fa;">Deadline Day</th>
+                    <th style="background:#f8f9fa;">Status</th>
+                    <th class="text-center" style="background:#f8f9fa;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="reportsBody">
+                <?php if (!empty($reportTypes)): ?>
+                    <?php foreach ($reportTypes as $i => $rt): ?>
+                        <tr
+                            data-code="<?php echo strtolower(htmlspecialchars($rt['report_code'])); ?>"
+                            data-title="<?php echo strtolower(htmlspecialchars($rt['report_title'])); ?>"
+                            data-submission-type="<?php echo htmlspecialchars($rt['submission_type'] ?? 'FILE_UPLOAD'); ?>"
+                            data-status="<?php echo $rt['is_active'] ? '1' : '0'; ?>">
+                            <td class="ps-4 small text-muted"><?php echo $i + 1; ?></td>
+                            <td>
+                                <span class="badge rounded-small" style="background-color:#092C4C;color:#fff;">
+                                    <?php echo htmlspecialchars($rt['report_code']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold small"><?php echo htmlspecialchars($rt['report_title']); ?></span>
+                            </td>
+                            <td>
+                                <?php
+                                $type = $rt['submission_type'] ?? 'FILE_UPLOAD';
+                                if ($type === 'GOOGLE_SHEET'): ?>
+                                    <span class="badge rounded-small bg-success"><i class="bi bi-file-spreadsheet me-1"></i>Google Sheet</span>
+                                <?php elseif ($type === 'BOTH'): ?>
+                                    <span class="badge rounded-small" style="background-color:#F3AF0E;color:#fff;"><i class="bi bi-files me-1"></i>Sheet + Files</span>
+                                <?php else: ?>
+                                    <span class="badge rounded-small" style="background-color:#092C4C;color:#fff;"><i class="bi bi-cloud-upload me-1"></i>File Upload</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="small text-muted"><?php echo htmlspecialchars($rt['opr'] ?? '—'); ?></span></td>
+                            <td><span class="small">Day <?php echo htmlspecialchars($rt['deadline_day'] ?? 15); ?></span></td>
+                            <td>
+                                <?php if ($rt['is_active']): ?>
+                                    <span class="badge rounded-small bg-success bg-opacity-10 text-success">Active</span>
+                                <?php else: ?>
+                                    <span class="badge rounded-small bg-danger bg-opacity-10 text-danger">Inactive</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReportType(<?php echo $rt['report_type_id']; ?>, '<?php echo htmlspecialchars($rt['report_code']); ?>')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                No report types found. Click "Add Report Type" to create one.
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick='editReportType(<?php echo json_encode($rt); ?>); return false;'>
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="deleteReportType(<?php echo $rt['report_type_id']; ?>, '<?php echo htmlspecialchars($rt['report_code']); ?>'); return false;">
+                                                <i class="bi bi-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No report types found. Click "Add Report Type" to create one.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
+
+    <!-- No results row (hidden initially) -->
+    <div id="noResults" class="text-center text-muted py-4" style="display:none!important;">No report types match your filters.</div>
 </div>
+
+<script>
+    (function() {
+        var searchInput = document.getElementById('reportSearch');
+        var filterSubmissionType = document.getElementById('filterSubmissionType');
+        var filterStatus = document.getElementById('filterStatus');
+        var resetBtn = document.getElementById('resetFilters');
+        var tbody = document.getElementById('reportsBody');
+        var countEl = document.getElementById('reportCount');
+        var noResults = document.getElementById('noResults');
+
+        function applyFilters() {
+            var search = searchInput.value.toLowerCase().trim();
+            var submissionType = filterSubmissionType.value;
+            var status = filterStatus.value;
+            var rows = tbody.querySelectorAll('tr[data-code]');
+            var visible = 0;
+
+            rows.forEach(function(row) {
+                var matchSearch = !search || row.dataset.code.includes(search) || row.dataset.title.includes(search);
+                var matchType = !submissionType || row.dataset.submissionType === submissionType;
+                var matchStatus = !status || row.dataset.status === status;
+                var show = matchSearch && matchType && matchStatus;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            countEl.textContent = visible + ' report type' + (visible !== 1 ? 's' : '') + ' found';
+            noResults.style.setProperty('display', visible === 0 ? 'block' : 'none', 'important');
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        filterSubmissionType.addEventListener('change', applyFilters);
+        filterStatus.addEventListener('change', applyFilters);
+
+        resetBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            filterSubmissionType.value = '';
+            filterStatus.value = '';
+            applyFilters();
+        });
+
+        applyFilters();
+    })();
+</script>
 
 <!-- Add Report Type Modal -->
 <div class="modal fade" id="addReportTypeModal" tabindex="-1">
