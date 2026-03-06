@@ -48,7 +48,9 @@ class SuperadminController extends Controller
             'lateCount' => $late,
             'reportTypes' => $reportTypeModel->getActive(),
             'recentSubmissions' => $this->submissionModel->getRecent(5),
-            'reportDeadlines' => $reportTypeModel->getAll()
+            'reportDeadlines' => $reportTypeModel->getAll(),
+            'monthlyTrend' => $this->submissionModel->getMonthlyTrend(),
+            'yearlyTrend'  => $this->submissionModel->getYearlyTrend(),
         ];
         $this->view('super_admin/index', $data);
     }

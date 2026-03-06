@@ -170,4 +170,68 @@ class Submission
 
         return $submissions;
     }
+
+    /**
+     * Monthly trend: count per status per month for a given year
+     * Returns array indexed [month] => ['on_time'=>x, 'late'=>y, 'non_compliant'=>z]
+     */
+    public function getMonthlyTrend($year = null)
+    {
+        if (!$year) $year = (int)date('Y');
+
+        $sql = "SELECT MONTH(submitted_at) as month, submission_status, COUNT(*) as cnt
+                FROM submissions
+                WHERE YEAR(submitted_at) = ? AND submitted_at IS NOT NULL
+                GROUP BY MONTH(submitted_at), submission_status
+                ORDER BY month";
+
+        $rows = $this->db->fetchAll($sql, [$year]);
+
+        $trend = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $trend[$m] = ['on_time' => 0, 'late' => 0, 'non_compliant' => 0];
+        }
+
+        foreach ($rows as $row) {
+            $m = (int)$row['month'];
+            if ($row['submission_status'] === 'ON_TIME')       $trend[$m]['on_time']       += (int)$row['cnt'];
+            elseif ($row['submission_status'] === 'LATE')      $trend[$m]['late']          += (int)$row['cnt'];
+            elseif ($row['submission_status'] === 'NO_SUBMISSION') $trend[$m]['non_compliant'] += (int)$row['cnt'];
+        }
+
+        return $trend;
+    }
+
+    /**
+     * Yearly trend: count per status per year (last 6 years)
+     * Returns array indexed [year] => ['on_time'=>x, 'late'=>y, 'non_compliant'=>z]
+     */
+    public function getYearlyTrend()
+    {
+        $currentYear = (int)date('Y');
+        $startYear   = $currentYear - 5;
+
+        $sql = "SELECT YEAR(submitted_at) as yr, submission_status, COUNT(*) as cnt
+                FROM submissions
+                WHERE YEAR(submitted_at) >= ? AND submitted_at IS NOT NULL
+                GROUP BY YEAR(submitted_at), submission_status
+                ORDER BY yr";
+
+        $rows = $this->db->fetchAll($sql, [$startYear]);
+
+        $trend = [];
+        for ($y = $startYear; $y <= $currentYear; $y++) {
+            $trend[$y] = ['on_time' => 0, 'late' => 0, 'non_compliant' => 0];
+        }
+
+        foreach ($rows as $row) {
+            $y = (int)$row['yr'];
+            if (!isset($trend[$y])) continue;
+            if ($row['submission_status'] === 'ON_TIME')           $trend[$y]['on_time']       += (int)$row['cnt'];
+            elseif ($row['submission_status'] === 'LATE')          $trend[$y]['late']          += (int)$row['cnt'];
+            elseif ($row['submission_status'] === 'NO_SUBMISSION') $trend[$y]['non_compliant'] += (int)$row['cnt'];
+        }
+
+        return $trend;
+    }
 }
